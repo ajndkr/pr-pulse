@@ -1,16 +1,187 @@
 import typer
+import datetime
+from github import Github, Auth
+import os
+from rich.console import Console
+from rich.table import Table
+from dotenv import load_dotenv
 
-app = typer.Typer()
+app = typer.Typer(help="CLI tool for GitHub PR operations")
+console = Console()
 
 
 @app.command()
-def hello(name: str):
-    print(f"Hello {name}")
+def list(
+    repo: str = typer.Argument(..., help="GitHub repository in format 'owner/repo'"),
+    days: int = typer.Option(7, help="number of days to look back for PRs"),
+    token: str = typer.Option(
+        None,
+        help="GitHub personal access token. if not provided, will try to use GITHUB_TOKEN environment variable",
+    ),
+):
+    """Lists all merged pull requests for a repository within the specified time frame."""
+    try:
+        github_token = token or os.environ.get("GITHUB_TOKEN")
+        if not github_token:
+            console.print(
+                "[bold red]error:[/] GitHub token not provided and GITHUB_TOKEN environment variable not set"
+            )
+            raise typer.Exit(1)
+
+        console.print("[bold blue]authenticating[/] with github...")
+        auth = Auth.Token(github_token)
+        g = Github(auth=auth)
+
+        try:
+            console.print(f"[bold blue]connecting[/] to repository {repo}...")
+            repository = g.get_repo(repo)
+        except Exception as e:
+            console.print(
+                f"[bold red]error:[/] could not find repository {repo}: {str(e)}"
+            )
+            raise typer.Exit(1)
+
+        end_date = datetime.datetime.now()
+        start_date = end_date - datetime.timedelta(days=days)
+
+        console.print(
+            f"[bold blue]searching[/] PRs from the last {days} days (until {end_date.strftime('%Y-%m-%d')})"
+        )
+
+        query = (
+            f"repo:{repo} is:pr is:merged merged:>={start_date.strftime('%Y-%m-%d')}"
+        )
+
+        console.print("[bold blue]searching[/] for merged pull requests...")
+        try:
+            pulls = g.search_issues(query)
+            console.print(f"[bold blue]found[/] {pulls.totalCount} pull requests")
+        except Exception as e:
+            console.print(f"[bold red]error:[/] query failed: {str(e)}")
+            console.print("[bold yellow]debugging info:[/]")
+            console.print(f"- repository: {repo}")
+            console.print(f"- query: {query}")
+            raise typer.Exit(1)
+
+        console.print("[bold blue]preparing[/] results table...")
+
+        table = Table(title=f"merged PRs in {repo} (last {days} days)")
+        table.add_column("pr #", justify="right", style="cyan")
+        table.add_column("title", style="green")
+        table.add_column("author", style="yellow")
+        table.add_column("merged at", style="magenta")
+
+        console.print("[bold blue]fetching[/] details for each pull request...")
+        pr_count = 0
+        for pr in pulls:
+            pr_count += 1
+            if pr_count % 5 == 0:
+                console.print(
+                    f"[bold blue]processing[/] pr #{pr.number} ({pr_count}/{pulls.totalCount})..."
+                )
+            try:
+                pull_request = repository.get_pull(pr.number)
+                if pull_request.merged_at:
+                    merged_at = pull_request.merged_at.strftime("%Y-%m-%d %H:%M")
+                    table.add_row(str(pr.number), pr.title, pr.user.login, merged_at)
+            except Exception as e:
+                console.print(
+                    f"[bold red]error:[/] failed to fetch PR #{pr.number}: {str(e)}"
+                )
+                continue
+
+        console.print("[bold blue]completed![/] displaying results:")
+        console.print(table)
+
+    except Exception as e:
+        console.print(f"[bold red]error:[/] {str(e)}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def detail(
+    repo: str = typer.Argument(..., help="GitHub repository in format 'owner/repo'"),
+    pr_number: int = typer.Argument(..., help="Pull request number"),
+    token: str = typer.Option(
+        None,
+        help="GitHub personal access token. If not provided, will try to use GITHUB_TOKEN environment variable",
+    ),
+):
+    """Shows details of a specific pull request including summary and top comments."""
+    try:
+        github_token = token or os.environ.get("GITHUB_TOKEN")
+        if not github_token:
+            console.print(
+                "[bold red]error:[/] GitHub token not provided and GITHUB_TOKEN environment variable not set"
+            )
+            raise typer.Exit(1)
+
+        console.print("[bold blue]authenticating[/] with github...")
+        auth = Auth.Token(github_token)
+        g = Github(auth=auth)
+
+        try:
+            console.print(f"[bold blue]connecting[/] to repository {repo}...")
+            repository = g.get_repo(repo)
+            console.print(f"[bold blue]fetching[/] pr #{pr_number}...")
+            pr = repository.get_pull(pr_number)
+        except Exception as e:
+            console.print(
+                f"[bold red]error:[/] could not find pr #{pr_number} in repository {repo}: {str(e)}"
+            )
+            raise typer.Exit(1)
+
+        console.print("[bold blue]preparing[/] pr details...")
+        console.print(f"[bold cyan]pr #{pr.number}:[/] [bold green]{pr.title}[/]")
+        console.print(f"[bold]author:[/] {pr.user.login}")
+        console.print(
+            f"[bold]status:[/] {'merged' if pr.merged else 'open' if pr.state == 'open' else 'closed'}"
+        )
+        if pr.merged:
+            console.print(
+                f"[bold]merged at:[/] {pr.merged_at.strftime('%Y-%m-%d %H:%M')}"
+            )
+        console.print(
+            f"[bold]created at:[/] {pr.created_at.strftime('%Y-%m-%d %H:%M')}"
+        )
+        console.print(f"[bold]url:[/] {pr.html_url}")
+
+        console.print("\n[bold blue]loading[/] pr description...")
+        console.print("[bold]description:[/]")
+        console.print(pr.body or "[italic]no description provided[/]")
+
+        console.print("\n[bold blue]fetching[/] pr comments...")
+        console.print("[bold]top comments:[/]")
+        comments = pr.get_issue_comments()
+        if comments.totalCount == 0:
+            console.print("[italic]no comments found[/]")
+        else:
+            console.print(f"[bold blue]found[/] {comments.totalCount} comments")
+            for i, comment in enumerate(comments[:5]):
+                if i == 0:
+                    console.print("[bold blue]displaying[/] top comments...")
+                console.print(
+                    f"\n[bold yellow]{comment.user.login}[/] at {comment.created_at.strftime('%Y-%m-%d %H:%M')}:"
+                )
+                console.print(comment.body)
+
+            if comments.totalCount > 5:
+                console.print(
+                    f"\n[italic]...and {comments.totalCount - 5} more comments[/]"
+                )
+
+        console.print("\n[bold blue]completed![/] pr details displayed.")
+
+    except Exception as e:
+        console.print(f"[bold red]error:[/] {str(e)}")
+        raise typer.Exit(1)
 
 
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context):
-    """app entrypoint"""
+    """CLI Entrypoint"""
+    load_dotenv()
+
     if ctx.invoked_subcommand is None:
         typer.echo(ctx.get_help())
 

@@ -1,6 +1,6 @@
 # pr-weekly
 
-generate weekly reports of all code changes in a github repository
+generate weekly reports of all code changes in a github repository.
 
 ## usage
 

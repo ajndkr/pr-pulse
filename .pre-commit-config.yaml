@@ -26,13 +26,13 @@ repos:
         args: [--markdown-linebreak-ext=md]
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: v2.4.1
     hooks:
       - id: codespell
         args: [--write-changes]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.2
+    rev: v0.11.2
     hooks:
       - id: ruff
         args: [--fix]
