@@ -1,6 +1,6 @@
-# uv-boilerplate
+# pr-weekly
 
-template repository for new uv projects with boilerplate code.
+generate weekly reports of all code changes in a github repository
 
 ## usage
 
