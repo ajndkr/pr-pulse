@@ -48,9 +48,9 @@ def list(
             f"[bold blue]searching[/] PRs from the last {days} days (until {end_date.strftime('%Y-%m-%d')})"
         )
 
-        owner, name = repo.split("/")
-
-        query = f"org:{owner} repo:{name} is:pr is:merged merged:>={start_date.strftime('%Y-%m-%d')}"
+        query = (
+            f"repo:{repo} is:pr is:merged merged:>={start_date.strftime('%Y-%m-%d')}"
+        )
 
         console.print("[bold blue]searching[/] for merged pull requests...")
         try:
@@ -65,11 +65,11 @@ def list(
 
         console.print("[bold blue]preparing[/] results table...")
 
-        table = Table(title=f"Merged PRs in {repo} (last {days} days)")
-        table.add_column("PR #", justify="right", style="cyan")
-        table.add_column("Title", style="green")
-        table.add_column("Author", style="yellow")
-        table.add_column("Merged At", style="magenta")
+        table = Table(title=f"merged PRs in {repo} (last {days} days)")
+        table.add_column("pr #", justify="right", style="cyan")
+        table.add_column("title", style="green")
+        table.add_column("author", style="yellow")
+        table.add_column("merged at", style="magenta")
 
         console.print("[bold blue]fetching[/] details for each pull request...")
         pr_count = 0
@@ -152,11 +152,11 @@ def detail(
 
         console.print("\n[bold blue]fetching[/] pr comments...")
         console.print("[bold]top comments:[/]")
-        comments = list(pr.get_issue_comments())
-        if not comments:
+        comments = pr.get_issue_comments()
+        if comments.totalCount == 0:
             console.print("[italic]no comments found[/]")
         else:
-            console.print(f"[bold blue]found[/] {len(comments)} comments")
+            console.print(f"[bold blue]found[/] {comments.totalCount} comments")
             for i, comment in enumerate(comments[:5]):
                 if i == 0:
                     console.print("[bold blue]displaying[/] top comments...")
@@ -165,8 +165,10 @@ def detail(
                 )
                 console.print(comment.body)
 
-            if len(comments) > 5:
-                console.print(f"\n[italic]...and {len(comments) - 5} more comments[/]")
+            if comments.totalCount > 5:
+                console.print(
+                    f"\n[italic]...and {comments.totalCount - 5} more comments[/]"
+                )
 
         console.print("\n[bold blue]completed![/] pr details displayed.")
 
