@@ -1,12 +1,13 @@
 [project]
-name = "uv-boilerplate"
+name = "pr-weekly"
 version = "0.1.0"
-description = "Add your description here"
+description = "generate weekly reports of all code changes in a github repository"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "google-genai>=1.7.0",
     "pygithub>=2.6.1",
+    "python-dotenv>=1.0.1",
     "slack-sdk>=3.35.0",
     "typer>=0.15.2",
 ]
