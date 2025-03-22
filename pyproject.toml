@@ -1,0 +1,16 @@
+[project]
+name = "uv-boilerplate"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "typer>=0.15.2",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "ipython>=9.0.2",
+    "pre-commit>=4.2.0",
+]

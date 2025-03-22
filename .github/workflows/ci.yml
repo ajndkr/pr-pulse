@@ -1,0 +1,31 @@
+# this workflow runs pre-commit checks on push and pull request events
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: code checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: install dependencies
+        run: make init
+
+      - name: run pre-commit
+        run: make ci
