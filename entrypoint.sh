@@ -16,6 +16,11 @@ if [[ "$INPUT_COMMAND" == "notify" && -z "$SLACK_WEBHOOK_URL" ]]; then
   exit 1
 fi
 
+if [[ ("$INPUT_COMMAND" == "report" || "$INPUT_COMMAND" == "notify") && -z "$INPUT_FILE" ]]; then
+  echo "error: input_file is required for $INPUT_COMMAND command"
+  exit 1
+fi
+
 VERBOSE_FLAG=""
 if [[ "$INPUT_VERBOSE" == "true" ]]; then
   VERBOSE_FLAG="--verbose"
@@ -38,27 +43,11 @@ elif [[ "$INPUT_COMMAND" == "list" ]]; then
     $VERBOSE_FLAG \
     $WRITE_FLAG
 elif [[ "$INPUT_COMMAND" == "report" ]]; then
-  pr-pulse summary "$INPUT_REPOSITORY" \
-    --days "$INPUT_DAYS" \
-    --format json \
-    --write \
-    $VERBOSE_FLAG
-
-  SUMMARY_FILE=$(find . -name 'pr-pulse-*.json')
-
-  pr-pulse report "$SUMMARY_FILE" \
+  pr-pulse report "$INPUT_FILE" \
     --api-key "$GENAI_API_KEY" \
     $VERBOSE_FLAG
 elif [[ "$INPUT_COMMAND" == "notify" ]]; then
-  pr-pulse summary "$INPUT_REPOSITORY" \
-    --days "$INPUT_DAYS" \
-    --format json \
-    --write \
-    $VERBOSE_FLAG
-
-  SUMMARY_FILE=$(find . -name 'pr-pulse-*.json')
-
-  pr-pulse notify "$SUMMARY_FILE" \
+  pr-pulse notify "$INPUT_FILE" \
     --webhook-url "$SLACK_WEBHOOK_URL" \
     $VERBOSE_FLAG
 else

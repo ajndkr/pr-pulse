@@ -25,7 +25,7 @@ inputs:
     required: false
     default: 'false'
   write:
-    description: 'Write JSON output to a file (only used with JSON format)'
+    description: 'Write output to a file'
     required: false
     default: 'false'
   command:
@@ -33,15 +33,19 @@ inputs:
     required: false
     default: 'summary'
   pr_number:
-    description: 'Pull request number (required only for detail command)'
+    description: 'Pull request number for detail command'
     required: false
     default: ''
   api_key:
-    description: 'GEMINI API key (required only for report command)'
+    description: 'GEMINI API key for report command'
     required: false
     default: ''
   slack_webhook_url:
-    description: 'Slack webhook URL (required only for notify command)'
+    description: 'Slack webhook URL for notify command'
+    required: false
+    default: ''
+  input_file:
+    description: 'Input file path for report and notify commands'
     required: false
     default: ''
 
@@ -59,3 +63,4 @@ runs:
     INPUT_WRITE: ${{ inputs.write }}
     INPUT_COMMAND: ${{ inputs.command }}
     INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+    INPUT_FILE: ${{ inputs.input_file }}
