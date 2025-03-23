@@ -110,7 +110,7 @@ def format_pr_data(pr: PullRequest, include_comments: bool = True) -> dict:
         comments_data = []
         comment_display_count = min(MAX_COMMENTS, comments.totalCount)
 
-        # Only try to iterate through comments if there are any
+        # only try to iterate through comments if there are any
         if comments.totalCount > 0:
             for comment in comments[:5]:
                 comments_data.append(
@@ -131,7 +131,7 @@ def format_pr_data(pr: PullRequest, include_comments: bool = True) -> dict:
 
 
 def display_pr_details_table(pr: PullRequest, show_comments: bool = True):
-    """Display pull request details in table format."""
+    """Displays pull request details in table format (comments are optional)."""
     details_table = Table(title=f"pr #{pr.number} details")
     details_table.add_column("field", style="cyan", justify="right")
     details_table.add_column("value", style="green")
