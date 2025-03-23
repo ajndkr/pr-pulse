@@ -27,18 +27,21 @@ jobs:
 
 #### input parameters
 
-| Parameter           | Description                                               | Required | Default |
-| ------------------- | --------------------------------------------------------- | -------- | ------- |
-| `github_token`      | GitHub token for repository access                        | Yes      | -       |
-| `repository`        | Target repository in format owner/repo                    | Yes      | -       |
-| `days`              | Number of days to look back for PRs                       | No       | 7       |
-| `output_format`     | Output format (table or json)                             | No       | table   |
-| `verbose`           | Show detailed progress logs                               | No       | false   |
-| `write`             | Write output to a file (only used with JSON format)       | No       | false   |
-| `command`           | Command to run (list, detail, summary, report, notify) | No       | summary |
-| `pr_number`         | Pull request number (required only for detail command)    | No       | -       |
-| `api_key`           | GEMINI API key (required only for report command)      | No       | -       |
-| `slack_webhook_url` | Slack webhook URL (required only for notify command)      | No       | -       |
+| Parameter           | Description                                                      | Required | Default |
+| ------------------- | ---------------------------------------------------------------- | -------- | ------- |
+| `github_token`      | GitHub token for repository access                               | Yes      | -       |
+| `repository`        | Target repository in format owner/repo                           | Yes      | -       |
+| `days`              | Number of days to look back for PRs                              | No       | 7       |
+| `output_format`     | Output format (table or json)                                    | No       | table   |
+| `verbose`           | Show detailed progress logs                                      | No       | false   |
+| `write`             | Write output to a file (only used with JSON format)              | No       | false   |
+| `command`           | Command to run (`list`, `detail`, `summary`, `report`, `notify`) | No       | summary |
+| `pr_number`         | Pull request number (required only for `detail` command)         | No       | -       |
+| `api_key`           | GEMINI API key (required only for `report` command)              | No       | -       |
+| `slack_webhook_url` | Slack webhook URL (required only for `notify` command)           | No       | -       |
+
+**Note:** To create a Slack webhook URL, refer to
+[Slack Incoming Webhooks](https://api.slack.com/messaging/webhooks).
 
 ## getting started (local development)
 
