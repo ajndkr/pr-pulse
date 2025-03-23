@@ -166,6 +166,17 @@ def detail(
         None,
         help="GitHub personal access token. If not provided, will try to use GITHUB_TOKEN environment variable",
     ),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.table,
+        "--format",
+        "-f",
+        help="output format",
+        show_choices=True,
+        case_sensitive=False,
+    ),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Show detailed progress logs"
+    ),
 ):
     """Shows details of a specific pull request including summary and top comments."""
     try:
@@ -176,14 +187,17 @@ def detail(
             )
             raise typer.Exit(1)
 
-        console.print("[bold blue]authenticating[/] with github...")
+        if verbose:
+            console.print("[bold blue]authenticating[/] with github...")
         auth = Auth.Token(github_token)
         g = Github(auth=auth)
 
         try:
-            console.print(f"[bold blue]connecting[/] to repository {repo}...")
+            if verbose:
+                console.print(f"[bold blue]connecting[/] to repository {repo}...")
             repository = g.get_repo(repo)
-            console.print(f"[bold blue]fetching[/] pr #{pr_number}...")
+            if verbose:
+                console.print(f"[bold blue]fetching[/] pr #{pr_number}...")
             pr = repository.get_pull(pr_number)
         except Exception as e:
             console.print(
@@ -191,46 +205,90 @@ def detail(
             )
             raise typer.Exit(1)
 
-        console.print("[bold blue]preparing[/] pr details...")
-        console.print(f"[bold cyan]pr #{pr.number}:[/] [bold green]{pr.title}[/]")
-        console.print(f"[bold]author:[/] {pr.user.login}")
-        console.print(
-            f"[bold]status:[/] {'merged' if pr.merged else 'open' if pr.state == 'open' else 'closed'}"
-        )
+        if verbose:
+            console.print("[bold blue]preparing[/] pr details...")
+
+        pr_data = {
+            "number": pr.number,
+            "title": pr.title,
+            "author": pr.user.login,
+            "status": "merged"
+            if pr.merged
+            else "open"
+            if pr.state == "open"
+            else "closed",
+            "created_at": pr.created_at.strftime("%Y-%m-%d %H:%M"),
+            "url": pr.html_url,
+            "description": pr.body or "",
+        }
+
         if pr.merged:
-            console.print(
-                f"[bold]merged at:[/] {pr.merged_at.strftime('%Y-%m-%d %H:%M')}"
-            )
-        console.print(
-            f"[bold]created at:[/] {pr.created_at.strftime('%Y-%m-%d %H:%M')}"
-        )
-        console.print(f"[bold]url:[/] {pr.html_url}")
+            pr_data["merged_at"] = pr.merged_at.strftime("%Y-%m-%d %H:%M")
 
-        console.print("\n[bold blue]loading[/] pr description...")
-        console.print("[bold]description:[/]")
-        console.print(pr.body or "[italic]no description provided[/]")
-
-        console.print("\n[bold blue]fetching[/] pr comments...")
-        console.print("[bold]top comments:[/]")
+        if verbose:
+            console.print("\n[bold blue]fetching[/] pr comments...")
         comments = pr.get_issue_comments()
-        if comments.totalCount == 0:
-            console.print("[italic]no comments found[/]")
-        else:
-            console.print(f"[bold blue]found[/] {comments.totalCount} comments")
-            for i, comment in enumerate(comments[:5]):
-                if i == 0:
-                    console.print("[bold blue]displaying[/] top comments...")
-                console.print(
-                    f"\n[bold yellow]{comment.user.login}[/] at {comment.created_at.strftime('%Y-%m-%d %H:%M')}:"
-                )
-                console.print(comment.body)
+        comments_data = []
 
-            if comments.totalCount > 5:
-                console.print(
-                    f"\n[italic]...and {comments.totalCount - 5} more comments[/]"
-                )
+        for i, comment in enumerate(comments[:5]):
+            comments_data.append(
+                {
+                    "author": comment.user.login,
+                    "created_at": comment.created_at.strftime("%Y-%m-%d %H:%M"),
+                    "body": comment.body,
+                }
+            )
 
-        console.print("\n[bold blue]completed![/] pr details displayed.")
+        pr_data["comments"] = {
+            "total_count": comments.totalCount,
+            "displayed_count": min(5, comments.totalCount),
+            "items": comments_data,
+        }
+
+        if output_format.lower() == OutputFormat.table:
+            console.print(f"[bold cyan]pr #{pr.number}:[/] [bold green]{pr.title}[/]")
+            console.print(f"[bold]author:[/] {pr.user.login}")
+            console.print(
+                f"[bold]status:[/] {'merged' if pr.merged else 'open' if pr.state == 'open' else 'closed'}"
+            )
+            if pr.merged:
+                console.print(
+                    f"[bold]merged at:[/] {pr.merged_at.strftime('%Y-%m-%d %H:%M')}"
+                )
+            console.print(
+                f"[bold]created at:[/] {pr.created_at.strftime('%Y-%m-%d %H:%M')}"
+            )
+            console.print(f"[bold]url:[/] {pr.html_url}")
+
+            console.print("\n[bold]description:[/]")
+            console.print(pr.body or "[italic]no description provided[/]")
+
+            console.print("\n[bold]top comments:[/]")
+            if comments.totalCount == 0:
+                console.print("[italic]no comments found[/]")
+            else:
+                if verbose:
+                    console.print(f"[bold blue]found[/] {comments.totalCount} comments")
+                for i, comment in enumerate(comments[:5]):
+                    if i == 0 and verbose:
+                        console.print("[bold blue]displaying[/] top comments...")
+                    console.print(
+                        f"\n[bold yellow]{comment.user.login}[/] at {comment.created_at.strftime('%Y-%m-%d %H:%M')}:"
+                    )
+                    console.print(comment.body)
+
+                if comments.totalCount > 5:
+                    console.print(
+                        f"\n[italic]...and {comments.totalCount - 5} more comments[/]"
+                    )
+
+            if verbose:
+                console.print("\n[bold blue]completed![/] pr details displayed.")
+
+        else:  # json format
+            if verbose:
+                console.print("[bold blue]generating[/] json output...")
+            print(json.dumps(pr_data, indent=2))
 
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")
