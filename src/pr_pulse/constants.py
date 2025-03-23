@@ -8,15 +8,7 @@ class OutputFormat(str, Enum):
 
 MAX_COMMENTS = 5
 BATCH_SIZE = 8
-REPORT_PROMPT = """Generate a structured report of the provided pull request activity in JSON format.
-
-Use this JSON schema:
-
-Report = {'summary': str, 'details': list[str]}
-Return: Report.
-
-'summary': contains an executive summary of all changes. mention the number of pull requests merged and top 5 changes across all pull requests as bullet point list. use markdown format.
-'details': contains functional requirement document of all changes. keep it single paragraph and maximum of 3 sentences. refer to pull request url for more details. use markdown format.
+REPORT_PROMPT = """Generate an executive summary of the provided merged pull request activity. Pay attention at the pull request title, description and comments to understand the changes. Focus on top 5 functional changes and mention them in a bullet point list. For all other changes, mention them in a single paragraph of maximum 3 lines. Use Markdown formatting.
 
 Data:
 
