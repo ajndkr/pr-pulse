@@ -127,7 +127,7 @@ def list(
                 total_prs=len(pr_data),
                 pull_requests=pr_data,
             )
-            print(json.dumps(result, indent=2))
+            print(json.dumps(result))
 
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")
@@ -258,7 +258,7 @@ def detail(
             else:
                 console.print("\n[italic]no comments found[/]")
         else:
-            print(json.dumps(pr_data, indent=2))
+            print(json.dumps(pr_data))
 
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")
