@@ -5,15 +5,7 @@ from rich.table import Table
 import json
 import asyncio
 
-from pr_pulse.utils import (
-    setup_github_client,
-    search_merged_pull_requests,
-    get_pr_details,
-    get_pr_details_batch,
-    display_pr_details_table,
-    format_pr_data,
-)
-
+from pr_pulse import utils
 from pr_pulse.constants import OutputFormat
 
 app = typer.Typer(help="CLI tool for GitHub PR operations")
@@ -42,8 +34,8 @@ def list(
 ):
     """Lists all merged pull requests for a repository within the specified time frame."""
     try:
-        _, g = setup_github_client(repo, token, verbose)
-        pulls = search_merged_pull_requests(g, repo, days, verbose)
+        _, g = utils.setup_github_client(repo, token, verbose)
+        pulls = utils.search_merged_pull_requests(g, repo, days, verbose)
 
         table = None
         if output_format.lower() == OutputFormat.table:
@@ -105,16 +97,16 @@ def detail(
 ):
     """Shows details of a specific pull request including summary and top comments."""
     try:
-        repository, _ = setup_github_client(repo, token, verbose)
-        pr = get_pr_details(repository, pr_number, verbose)
+        repository, _ = utils.setup_github_client(repo, token, verbose)
+        pr = utils.get_pr_details(repository, pr_number, verbose)
 
         if verbose:
             console.print("[bold blue]preparing[/] pr details...")
 
         if output_format.lower() == OutputFormat.table:
-            display_pr_details_table(pr)
+            utils.display_pr_details_table(pr)
         else:
-            pr_data = format_pr_data(pr)
+            pr_data = utils.format_pr_data(pr)
             print(json.dumps(pr_data))
 
     except Exception as e:
@@ -144,8 +136,8 @@ def summary(
 ):
     """Provides a summary of all merged pull requests with their details."""
     try:
-        repository, g = setup_github_client(repo, token, verbose)
-        pulls = search_merged_pull_requests(g, repo, days, verbose)
+        repository, g = utils.setup_github_client(repo, token, verbose)
+        pulls = utils.search_merged_pull_requests(g, repo, days, verbose)
 
         if verbose:
             console.print("[bold blue]fetching[/] details for each PR...")
@@ -153,7 +145,9 @@ def summary(
         pr_numbers = [pull.number for pull in pulls]
         pr_count = len(pr_numbers)
 
-        pr_details = asyncio.run(get_pr_details_batch(repository, pr_numbers, verbose))
+        pr_details = asyncio.run(
+            utils.get_pr_details_batch(repository, pr_numbers, verbose)
+        )
 
         if output_format.lower() == OutputFormat.table:
             summary_table = Table(title=f"PR summary for {repo} (last {days} days)")
@@ -199,7 +193,7 @@ def summary(
                 ),
             )
             formatted_prs = [
-                format_pr_data(pr, include_comments=True) for pr in pr_details
+                utils.format_pr_data(pr, include_comments=True) for pr in pr_details
             ]
             output = dict(stats=stats, pull_requests=formatted_prs)
 
