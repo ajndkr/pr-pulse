@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import typer
+from google.genai import types
 from rich.console import Console
 
 from pr_pulse import utils
@@ -51,10 +52,19 @@ def report(
         if verbose:
             console.print("[bold blue]generating[/] summary...")
 
+        generate_content_config = types.GenerateContentConfig(
+            temperature=1,
+            top_p=0.95,
+            top_k=40,
+            max_output_tokens=8192,
+            response_mime_type="text/plain",
+        )
+
         response = ""
         for chunk in client.models.generate_content_stream(
             model=model,
             contents=REPORT_PROMPT.format(input_data=input_data),
+            config=generate_content_config,
         ):
             if stream:
                 console.print(chunk.text, end="")
