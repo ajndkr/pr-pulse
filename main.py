@@ -18,10 +18,13 @@ class OutputFormat(str, Enum):
     json = "json"
 
 
+MAX_COMMENTS = 5
+
+
 def setup_github_client(
     repo: str, token: str | None, verbose: bool
 ) -> tuple[Repository, Github]:
-    """Setup GitHub client and repository instance."""
+    """Sets up GitHub client and repository instance."""
     github_token = token or os.environ.get("GITHUB_TOKEN")
     if not github_token:
         console.print(
@@ -187,6 +190,7 @@ def detail(
 
         comments = pr.get_issue_comments()
         comments_data = []
+        comment_display_count = min(MAX_COMMENTS, comments.totalCount)
 
         for i, comment in enumerate(comments[:5]):
             comments_data.append(
@@ -199,47 +203,60 @@ def detail(
 
         pr_data["comments"] = {
             "total_count": comments.totalCount,
-            "displayed_count": min(5, comments.totalCount),
+            "displayed_count": comment_display_count,
             "items": comments_data,
         }
 
         if output_format.lower() == OutputFormat.table:
-            console.print(f"[bold cyan]pr #{pr.number}:[/] [bold green]{pr.title}[/]")
-            console.print(f"[bold]author:[/] {pr.user.login}")
-            console.print(
-                f"[bold]status:[/] {'merged' if pr.merged else 'open' if pr.state == 'open' else 'closed'}"
+            details_table = Table(title=f"PR #{pr.number} Details")
+            details_table.add_column("field", style="cyan", justify="right")
+            details_table.add_column("value", style="green")
+
+            details_table.add_row("title", pr.title)
+            details_table.add_row("author", pr.user.login)
+            details_table.add_row(
+                "status",
+                "merged" if pr.merged else "open" if pr.state == "open" else "closed",
+            )
+            details_table.add_row(
+                "created At", pr.created_at.strftime("%Y-%m-%d %H:%M")
             )
             if pr.merged:
-                console.print(
-                    f"[bold]merged at:[/] {pr.merged_at.strftime('%Y-%m-%d %H:%M')}"
+                details_table.add_row(
+                    "merged At", pr.merged_at.strftime("%Y-%m-%d %H:%M")
                 )
-            console.print(
-                f"[bold]created at:[/] {pr.created_at.strftime('%Y-%m-%d %H:%M')}"
-            )
-            console.print(f"[bold]url:[/] {pr.html_url}")
+            details_table.add_row("url", pr.html_url)
 
-            console.print("\n[bold]description:[/]")
-            console.print(pr.body or "[italic]no description provided[/]")
+            console.print(details_table)
 
-            console.print("\n[bold]top comments:[/]")
-            if comments.totalCount == 0:
-                console.print("[italic]no comments found[/]")
+            if pr.body:
+                desc_table = Table(title="description")
+                desc_table.add_column("content", style="yellow")
+                desc_table.add_row(pr.body)
+                console.print("\n")
+                console.print(desc_table)
             else:
-                if verbose:
-                    console.print(f"[bold blue]found[/] {comments.totalCount} comments")
-                for i, comment in enumerate(comments[:5]):
-                    if i == 0 and verbose:
-                        console.print("[bold blue]displaying[/] top comments...")
-                    console.print(
-                        f"\n[bold yellow]{comment.user.login}[/] at {comment.created_at.strftime('%Y-%m-%d %H:%M')}:"
-                    )
-                    console.print(comment.body)
+                console.print("\n[italic]no description provided[/]")
 
-                if comments.totalCount > 5:
-                    console.print(
-                        f"\n[italic]...and {comments.totalCount - 5} more comments[/]"
+            if comments.totalCount > 0:
+                comments_table = Table(
+                    title=f"comments (showing {comment_display_count} of {comments.totalCount})"
+                )
+                comments_table.add_column("author", style="cyan")
+                comments_table.add_column("date", style="yellow")
+                comments_table.add_column("comment", style="green")
+
+                for comment in comments[:5]:
+                    comments_table.add_row(
+                        comment.user.login,
+                        comment.created_at.strftime("%Y-%m-%d %H:%M"),
+                        comment.body,
                     )
 
+                console.print("\n")
+                console.print(comments_table)
+            else:
+                console.print("\n[italic]no comments found[/]")
         else:
             print(json.dumps(pr_data, indent=2))
 
