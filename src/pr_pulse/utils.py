@@ -1,3 +1,4 @@
+import pathlib
 import typer
 import datetime
 from github import Github, Auth
@@ -190,3 +191,15 @@ def display_pr_details_table(pr: PullRequest, show_comments: bool = True):
             console.print(comments_table)
         else:
             console.print("\n[italic]no comments found[/]")
+
+
+def write_json_to_file(
+    data: dict, prefix: str = "pr-pulse", verbose: bool = False
+) -> None:
+    """Writes JSON data to a file."""
+    today = datetime.datetime.now().strftime("%d-%m-%Y")
+    filename = f"{prefix}-{today}.json"
+    output_path = pathlib.Path(filename)
+    output_path.write_text(data)
+    if verbose:
+        console.print(f"[green]results written to:[/] {filename}")
