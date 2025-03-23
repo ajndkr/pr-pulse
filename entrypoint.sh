@@ -6,6 +6,11 @@ if [[ "$INPUT_COMMAND" == "detail" && -z "$INPUT_PR_NUMBER" ]]; then
   exit 1
 fi
 
+if [[ "$INPUT_COMMAND" == "ai_report" && -z "$GENAI_API_KEY" ]]; then
+  echo "error: api_key is required for ai_report command"
+  exit 1
+fi
+
 VERBOSE_FLAG=""
 if [[ "$INPUT_VERBOSE" == "true" ]]; then
   VERBOSE_FLAG="--verbose"
@@ -27,6 +32,18 @@ elif [[ "$INPUT_COMMAND" == "list" ]]; then
     --format "$INPUT_OUTPUT_FORMAT" \
     $VERBOSE_FLAG \
     $WRITE_FLAG
+elif [[ "$INPUT_COMMAND" == "ai_report" ]]; then
+  pr-pulse summary "$INPUT_REPOSITORY" \
+    --days "$INPUT_DAYS" \
+    --format json \
+    --write \
+    $VERBOSE_FLAG
+
+  SUMMARY_FILE=$(find . -name 'pr-pulse-*.json')
+
+  pr-pulse ai_report "$SUMMARY_FILE" \
+    --api-key "$GENAI_API_KEY" \
+    $VERBOSE_FLAG
 else
   pr-pulse summary "$INPUT_REPOSITORY" \
     --days "$INPUT_DAYS" \
