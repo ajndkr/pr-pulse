@@ -7,6 +7,7 @@ from rich.table import Table
 from dotenv import load_dotenv
 import json
 from enum import Enum
+from github.Repository import Repository
 
 app = typer.Typer(help="CLI tool for GitHub PR operations")
 console = Console()
@@ -15,6 +16,32 @@ console = Console()
 class OutputFormat(str, Enum):
     table = "table"
     json = "json"
+
+
+def setup_github_client(
+    repo: str, token: str | None, verbose: bool
+) -> tuple[Repository, Github]:
+    """Setup GitHub client and repository instance."""
+    github_token = token or os.environ.get("GITHUB_TOKEN")
+    if not github_token:
+        console.print(
+            "[bold red]error:[/] GitHub token not provided and GITHUB_TOKEN environment variable not set"
+        )
+        raise typer.Exit(1)
+
+    if verbose:
+        console.print("[bold blue]authenticating[/] with github...")
+    auth = Auth.Token(github_token)
+    g = Github(auth=auth)
+
+    try:
+        if verbose:
+            console.print(f"[bold blue]connecting[/] to repository {repo}...")
+        repository = g.get_repo(repo)
+        return repository, g
+    except Exception as e:
+        console.print(f"[bold red]error:[/] could not find repository {repo}: {str(e)}")
+        raise typer.Exit(1)
 
 
 @app.command()
@@ -39,27 +66,7 @@ def list(
 ):
     """Lists all merged pull requests for a repository within the specified time frame."""
     try:
-        github_token = token or os.environ.get("GITHUB_TOKEN")
-        if not github_token:
-            console.print(
-                "[bold red]error:[/] GitHub token not provided and GITHUB_TOKEN environment variable not set"
-            )
-            raise typer.Exit(1)
-
-        if verbose:
-            console.print("[bold blue]authenticating[/] with github...")
-        auth = Auth.Token(github_token)
-        g = Github(auth=auth)
-
-        try:
-            if verbose:
-                console.print(f"[bold blue]connecting[/] to repository {repo}...")
-            repository = g.get_repo(repo)
-        except Exception as e:
-            console.print(
-                f"[bold red]error:[/] could not find repository {repo}: {str(e)}"
-            )
-            raise typer.Exit(1)
+        repository, g = setup_github_client(repo, token, verbose)
 
         end_date = datetime.datetime.now()
         start_date = end_date - datetime.timedelta(days=days)
@@ -180,22 +187,9 @@ def detail(
 ):
     """Shows details of a specific pull request including summary and top comments."""
     try:
-        github_token = token or os.environ.get("GITHUB_TOKEN")
-        if not github_token:
-            console.print(
-                "[bold red]error:[/] GitHub token not provided and GITHUB_TOKEN environment variable not set"
-            )
-            raise typer.Exit(1)
-
-        if verbose:
-            console.print("[bold blue]authenticating[/] with github...")
-        auth = Auth.Token(github_token)
-        g = Github(auth=auth)
+        repository, _ = setup_github_client(repo, token, verbose)
 
         try:
-            if verbose:
-                console.print(f"[bold blue]connecting[/] to repository {repo}...")
-            repository = g.get_repo(repo)
             if verbose:
                 console.print(f"[bold blue]fetching[/] pr #{pr_number}...")
             pr = repository.get_pull(pr_number)
