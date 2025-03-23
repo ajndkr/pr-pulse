@@ -14,5 +14,7 @@ run:	## run project
 	uv run main.py
 
 clean:	## clean project
-	rm -rfv .venv
 	find . -type d -name '__pycache__' -exec rm -rfv {} +
+
+clean-all: clean	## clean project and remove virtual environment
+	rm -rf .venv
