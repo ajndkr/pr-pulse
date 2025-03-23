@@ -22,6 +22,7 @@ class OutputFormat(str, Enum):
 
 
 MAX_COMMENTS = 5
+BATCH_SIZE = 8
 
 
 def setup_github_client(
@@ -96,12 +97,18 @@ async def get_pr_details_batch(
     repository: Repository, pr_numbers: List[int], verbose: bool
 ) -> List[PullRequest]:
     """Fetches details of pull requests in a batch."""
-    tasks = [
-        asyncio.to_thread(get_pr_details, repository, pr_number, verbose)
-        for pr_number in pr_numbers
-    ]
+    results = []
 
-    return await asyncio.gather(*tasks)
+    for i in range(0, len(pr_numbers), BATCH_SIZE):
+        batch = pr_numbers[i : i + BATCH_SIZE]
+        batch_tasks = [
+            asyncio.to_thread(get_pr_details, repository, pr_num, verbose)
+            for pr_num in batch
+        ]
+        batch_results = await asyncio.gather(*batch_tasks)
+        results.extend(batch_results)
+
+    return results
 
 
 def format_pr_data(pr: PullRequest, include_comments: bool = True) -> dict:
