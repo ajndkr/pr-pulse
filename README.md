@@ -1,4 +1,4 @@
-# pr-weekly
+# pr-pulse
 
 generate weekly reports of all code changes in a github repository.
 

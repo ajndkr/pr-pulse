@@ -1,5 +1,5 @@
 [project]
-name = "pr-weekly"
+name = "pr-pulse"
 version = "0.1.0"
 description = "generate weekly reports of all code changes in a github repository"
 readme = "README.md"
