@@ -6,8 +6,13 @@ if [[ "$INPUT_COMMAND" == "detail" && -z "$INPUT_PR_NUMBER" ]]; then
   exit 1
 fi
 
-if [[ "$INPUT_COMMAND" == "ai_report" && -z "$GENAI_API_KEY" ]]; then
-  echo "error: api_key is required for ai_report command"
+if [[ "$INPUT_COMMAND" == "report" && -z "$GENAI_API_KEY" ]]; then
+  echo "error: api_key is required for report command"
+  exit 1
+fi
+
+if [[ "$INPUT_COMMAND" == "notify" && -z "$SLACK_WEBHOOK_URL" ]]; then
+  echo "error: slack_webhook_url is required for notify command"
   exit 1
 fi
 
@@ -32,7 +37,7 @@ elif [[ "$INPUT_COMMAND" == "list" ]]; then
     --format "$INPUT_OUTPUT_FORMAT" \
     $VERBOSE_FLAG \
     $WRITE_FLAG
-elif [[ "$INPUT_COMMAND" == "ai_report" ]]; then
+elif [[ "$INPUT_COMMAND" == "report" ]]; then
   pr-pulse summary "$INPUT_REPOSITORY" \
     --days "$INPUT_DAYS" \
     --format json \
@@ -41,8 +46,20 @@ elif [[ "$INPUT_COMMAND" == "ai_report" ]]; then
 
   SUMMARY_FILE=$(find . -name 'pr-pulse-*.json')
 
-  pr-pulse ai_report "$SUMMARY_FILE" \
+  pr-pulse report "$SUMMARY_FILE" \
     --api-key "$GENAI_API_KEY" \
+    $VERBOSE_FLAG
+elif [[ "$INPUT_COMMAND" == "notify" ]]; then
+  pr-pulse summary "$INPUT_REPOSITORY" \
+    --days "$INPUT_DAYS" \
+    --format json \
+    --write \
+    $VERBOSE_FLAG
+
+  SUMMARY_FILE=$(find . -name 'pr-pulse-*.json')
+
+  pr-pulse notify "$SUMMARY_FILE" \
+    --webhook-url "$SLACK_WEBHOOK_URL" \
     $VERBOSE_FLAG
 else
   pr-pulse summary "$INPUT_REPOSITORY" \

@@ -12,7 +12,7 @@ console = Console()
 
 
 @app.command()
-def ai_report(
+def report(
     summary_json_file: Path = typer.Argument(
         ...,
         help="Path to summary JSON file",
@@ -63,7 +63,3 @@ def ai_report(
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")
         raise typer.Exit(1)
-
-
-if __name__ == "__main__":
-    app()

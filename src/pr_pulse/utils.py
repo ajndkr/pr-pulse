@@ -11,6 +11,7 @@ from github.Repository import Repository
 from google import genai
 from rich.console import Console
 from rich.table import Table
+from slack_sdk.webhook import WebhookClient
 
 from pr_pulse.constants import BATCH_SIZE, MAX_COMMENTS
 
@@ -218,3 +219,41 @@ def setup_gemini_client(api_key: str | None, verbose: bool) -> genai.Client:
         console.print("[bold blue]initializing[/] Gemini AI client...")
 
     return genai.Client(api_key=api_key)
+
+
+def setup_slack_webhook_client(webhook_url: str | None, verbose: bool) -> WebhookClient:
+    """Sets up Slack webhook client."""
+    webhook_url = webhook_url or os.environ.get("SLACK_WEBHOOK_URL")
+    if not webhook_url:
+        console.print(
+            "[bold red]error:[/] Slack webhook URL not provided and SLACK_WEBHOOK_URL environment variable not set"
+        )
+        raise typer.Exit(1)
+
+    if verbose:
+        console.print("[bold blue]initializing[/] Slack client...")
+
+    return WebhookClient(webhook_url)
+
+
+def create_report_slack_blocks(report: str):
+    """Creates Slack blocks from report."""
+    blocks = [
+        {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": f"PR Pulse Report",
+                "emoji": True,
+            },
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": report,
+            },
+        },
+    ]
+
+    return blocks

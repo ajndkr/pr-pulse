@@ -29,7 +29,7 @@ inputs:
     required: false
     default: 'false'
   command:
-    description: 'Command to run (list, detail, summary, ai_report)'
+    description: 'Command to run (list, detail, summary, report, notify)'
     required: false
     default: 'summary'
   pr_number:
@@ -37,7 +37,11 @@ inputs:
     required: false
     default: ''
   api_key:
-    description: 'GEMINI API key (required only for ai_report command)'
+    description: 'GEMINI API key (required only for report command)'
+    required: false
+    default: ''
+  slack_webhook_url:
+    description: 'Slack webhook URL (required only for notify command)'
     required: false
     default: ''
 
@@ -47,6 +51,7 @@ runs:
   env:
     GITHUB_TOKEN: ${{ inputs.github_token }}
     GENAI_API_KEY: ${{ inputs.api_key }}
+    SLACK_WEBHOOK_URL: ${{ inputs.slack_webhook_url }}
     INPUT_REPOSITORY: ${{ inputs.repository }}
     INPUT_DAYS: ${{ inputs.days }}
     INPUT_OUTPUT_FORMAT: ${{ inputs.output_format }}
