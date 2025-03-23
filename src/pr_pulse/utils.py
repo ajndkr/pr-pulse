@@ -208,6 +208,18 @@ def write_json_to_file(
         console.print(f"[green]results written to:[/] {filename}")
 
 
+def write_text_to_file(
+    text: str, prefix: str = "pr-pulse", verbose: bool = False
+) -> None:
+    """Writes text data to a file."""
+    today = datetime.datetime.now().strftime("%d-%m-%Y")
+    filename = f"{prefix}-{today}.txt"
+    output_path = pathlib.Path(filename)
+    output_path.write_text(text)
+    if verbose:
+        console.print(f"[green]results written to:[/] {filename}")
+
+
 def setup_gemini_client(api_key: str | None, verbose: bool) -> genai.Client:
     """Sets up Gemini client."""
     api_key = api_key or os.environ.get("GENAI_API_KEY")

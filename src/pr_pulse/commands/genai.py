@@ -29,6 +29,9 @@ def report(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
     stream: bool = typer.Option(False, "--stream", "-s", help="Stream the response"),
+    write: bool = typer.Option(
+        False, "--write", "-w", help="Write the generated report to a text file"
+    ),
 ):
     """Generates a report of pull request activity from a JSON file using Gemini AI."""
     try:
@@ -59,6 +62,11 @@ def report(
 
         if not stream:
             console.print(response)
+
+        if write:
+            if verbose:
+                console.print("[bold blue]writing[/] report to file...")
+            utils.write_text_to_file(response, "pr-pulse-report", verbose)
 
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")
