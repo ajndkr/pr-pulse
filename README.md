@@ -72,9 +72,15 @@ make run
 
 ## project roadmap
 
+### v1 phase
+
 - [x] setup project
 - [x] create commands to fetch data from github
 - [x] convert project to github action to schedule cron jobs in target
       repository
 - [x] add llm integration to generate weekly report
 - [x] add slack integration to send weekly report
+
+### v2 phase
+
+to be continued...
