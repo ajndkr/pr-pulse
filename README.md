@@ -4,19 +4,6 @@ generate weekly reports of all code changes in a github repository.
 
 ## usage
 
-### local usage
-
-run the following to view the list of available commands:
-
-```shell
-make run
-```
-
-### github action usage
-
-pr-pulse can be used as a github action to automatically generate reports on a
-schedule.
-
 #### basic example
 
 ```yaml
@@ -47,6 +34,7 @@ jobs:
 | `days`          | Number of days to look back for PRs                    | No       | 7       |
 | `output_format` | Output format (table or json)                          | No       | table   |
 | `verbose`       | Show detailed progress logs                            | No       | false   |
+| `write`         | Write output to a file (only used with JSON format)    | No       | false   |
 | `command`       | Command to run (list, detail, summary)                 | No       | summary |
 | `pr_number`     | Pull request number (required only for detail command) | No       | -       |
 
@@ -66,6 +54,14 @@ to run pre-commit checks, run:
 
 ```shell
 make ci
+```
+
+### run commands
+
+run the following to view the list of available commands:
+
+```shell
+make run
 ```
 
 ## project roadmap
