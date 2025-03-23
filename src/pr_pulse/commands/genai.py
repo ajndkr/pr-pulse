@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import typer
+from google.genai import types
 from rich.console import Console
 
 from pr_pulse import utils
@@ -12,7 +13,7 @@ console = Console()
 
 
 @app.command()
-def ai_report(
+def report(
     summary_json_file: Path = typer.Argument(
         ...,
         help="Path to summary JSON file",
@@ -29,6 +30,9 @@ def ai_report(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
     stream: bool = typer.Option(False, "--stream", "-s", help="Stream the response"),
+    write: bool = typer.Option(
+        False, "--write", "-w", help="Write the generated report to a text file"
+    ),
 ):
     """Generates a report of pull request activity from a JSON file using Gemini AI."""
     try:
@@ -48,10 +52,19 @@ def ai_report(
         if verbose:
             console.print("[bold blue]generating[/] summary...")
 
+        generate_content_config = types.GenerateContentConfig(
+            temperature=1,
+            top_p=0.95,
+            top_k=40,
+            max_output_tokens=8192,
+            response_mime_type="text/plain",
+        )
+
         response = ""
         for chunk in client.models.generate_content_stream(
             model=model,
             contents=REPORT_PROMPT.format(input_data=input_data),
+            config=generate_content_config,
         ):
             if stream:
                 console.print(chunk.text, end="")
@@ -60,10 +73,11 @@ def ai_report(
         if not stream:
             console.print(response)
 
+        if write:
+            if verbose:
+                console.print("[bold blue]writing[/] report to file...")
+            utils.write_text_to_file(response, "pr-pulse-report", verbose)
+
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")
         raise typer.Exit(1)
-
-
-if __name__ == "__main__":
-    app()
