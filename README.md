@@ -4,6 +4,8 @@ generate weekly reports of all code changes in a github repository.
 
 ## usage
 
+run the following to view the list of available commands.
+
 ```shell
 make run
 ```
