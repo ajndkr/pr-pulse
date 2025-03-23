@@ -12,16 +12,16 @@ if [[ "$INPUT_VERBOSE" == "true" ]]; then
 fi
 
 if [[ "$INPUT_COMMAND" == "detail" ]]; then
-  uv run pr-pulse detail "$INPUT_REPOSITORY" "$INPUT_PR_NUMBER" \
+  pr-pulse detail "$INPUT_REPOSITORY" "$INPUT_PR_NUMBER" \
     --format "$INPUT_OUTPUT_FORMAT" \
     $VERBOSE_FLAG
 elif [[ "$INPUT_COMMAND" == "list" ]]; then
-  uv run pr-pulse list "$INPUT_REPOSITORY" \
+  pr-pulse list "$INPUT_REPOSITORY" \
     --days "$INPUT_DAYS" \
     --format "$INPUT_OUTPUT_FORMAT" \
     $VERBOSE_FLAG
 else
-  uv run pr-pulse summary "$INPUT_REPOSITORY" \
+  pr-pulse summary "$INPUT_REPOSITORY" \
     --days "$INPUT_DAYS" \
     --format "$INPUT_OUTPUT_FORMAT" \
     $VERBOSE_FLAG
