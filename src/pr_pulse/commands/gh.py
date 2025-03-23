@@ -28,6 +28,12 @@ def list(
         show_choices=True,
         case_sensitive=False,
     ),
+    write: bool = typer.Option(
+        False,
+        "--write",
+        "-w",
+        help="Write JSON output to a file (only used with JSON format)",
+    ),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
@@ -68,7 +74,12 @@ def list(
                 total_prs=len(pr_data),
                 pull_requests=pr_data,
             )
-            print(json.dumps(result))
+            json_output = json.dumps(result)
+
+            if write:
+                utils.write_json_to_file(json_output, "pr-pulse-list", verbose)
+
+            print(json_output)
 
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")
@@ -91,6 +102,12 @@ def detail(
         show_choices=True,
         case_sensitive=False,
     ),
+    write: bool = typer.Option(
+        False,
+        "--write",
+        "-w",
+        help="Write JSON output to a file (only used with JSON format)",
+    ),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
@@ -107,7 +124,12 @@ def detail(
             utils.display_pr_details_table(pr)
         else:
             pr_data = utils.format_pr_data(pr)
-            print(json.dumps(pr_data))
+            json_output = json.dumps(pr_data)
+
+            if write:
+                utils.write_json_to_file(json_output, "pr-pulse-detail", verbose)
+
+            print(json_output)
 
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")
@@ -129,6 +151,12 @@ def summary(
         help="output format",
         show_choices=True,
         case_sensitive=False,
+    ),
+    write: bool = typer.Option(
+        False,
+        "--write",
+        "-w",
+        help="Write JSON output to a file (only used with JSON format)",
     ),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed progress logs"
@@ -196,8 +224,12 @@ def summary(
                 utils.format_pr_data(pr, include_comments=True) for pr in pr_details
             ]
             output = dict(stats=stats, pull_requests=formatted_prs)
+            json_output = json.dumps(output)
 
-            print(json.dumps(output))
+            if write:
+                utils.write_json_to_file(json_output, "pr-pulse-summary", verbose)
+
+            print(json_output)
 
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")

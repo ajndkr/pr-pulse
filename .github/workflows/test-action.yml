@@ -25,6 +25,11 @@ on:
         required: false
         default: 'false'
         type: boolean
+      write:
+        description: 'write JSON output to a file (only used with JSON format)'
+        required: false
+        default: 'false'
+        type: boolean
       command:
         description: 'command to run'
         required: false
@@ -52,5 +57,13 @@ jobs:
           days: ${{ github.event.inputs.days }}
           output_format: ${{ github.event.inputs.output_format }}
           verbose: ${{ github.event.inputs.verbose }}
+          write: ${{ github.event.inputs.write }}
           command: ${{ github.event.inputs.command }}
           pr_number: ${{ github.event.inputs.pr_number }}
+
+      - name: read json output
+        if: ${{ github.event.inputs.output_format == 'json' && github.event.inputs.write == 'true' }}
+        run: |
+          json_file=$(find . -name 'pr-pulse-*.json')
+          echo "reading file: $json_file"
+          cat $json_file
