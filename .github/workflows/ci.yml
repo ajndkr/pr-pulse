@@ -25,6 +25,14 @@ jobs:
           python-version-file: ".python-version"
           cache-dependency-path: "uv.lock"
 
+      - name: setup pre-commit cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit
+          key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pre-commit-
+
       - name: install dependencies
         run: make init
 
