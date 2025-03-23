@@ -9,6 +9,8 @@ import json
 from enum import Enum
 from github.Repository import Repository
 from github.PullRequest import PullRequest
+import asyncio
+from typing import List
 
 app = typer.Typer(help="CLI tool for GitHub PR operations")
 console = Console()
@@ -88,6 +90,18 @@ def get_pr_details(
             f"[bold red]error:[/] could not find pr #{pr_number} in repository {repository.full_name}: {str(e)}"
         )
         raise typer.Exit(1)
+
+
+async def get_pr_details_batch(
+    repository: Repository, pr_numbers: List[int], verbose: bool
+) -> List[PullRequest]:
+    """Fetches details of pull requests in a batch."""
+    tasks = [
+        asyncio.to_thread(get_pr_details, repository, pr_number, verbose)
+        for pr_number in pr_numbers
+    ]
+
+    return await asyncio.gather(*tasks)
 
 
 def format_pr_data(pr: PullRequest, include_comments: bool = True) -> dict:
@@ -284,15 +298,6 @@ def detail(
         raise typer.Exit(1)
 
 
-@app.callback(invoke_without_command=True)
-def main(ctx: typer.Context):
-    """CLI Entrypoint"""
-    load_dotenv()
-
-    if ctx.invoked_subcommand is None:
-        typer.echo(ctx.get_help())
-
-
 @app.command()
 def summary(
     repo: str = typer.Argument(..., help="GitHub repository in format 'owner/repo'"),
@@ -321,13 +326,10 @@ def summary(
         if verbose:
             console.print("[bold blue]fetching[/] details for each PR...")
 
-        pr_details = []
-        pr_count = 0
-        for issue in pulls:
-            pr_count += 1
-            pr_number = issue.number
-            pr = get_pr_details(repository, pr_number, verbose)
-            pr_details.append(pr)
+        pr_numbers = [pull.number for pull in pulls]
+        pr_count = len(pr_numbers)
+
+        pr_details = asyncio.run(get_pr_details_batch(repository, pr_numbers, verbose))
 
         if output_format.lower() == OutputFormat.table:
             summary_table = Table(title=f"PR summary for {repo} (last {days} days)")
@@ -382,6 +384,15 @@ def summary(
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")
         raise typer.Exit(1)
+
+
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context):
+    """CLI Entrypoint"""
+    load_dotenv()
+
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
 
 
 if __name__ == "__main__":
