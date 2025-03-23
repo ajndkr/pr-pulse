@@ -60,3 +60,10 @@ jobs:
           write: ${{ github.event.inputs.write }}
           command: ${{ github.event.inputs.command }}
           pr_number: ${{ github.event.inputs.pr_number }}
+
+      - name: read json output
+        if: ${{ github.event.inputs.output_format == 'json' && github.event.inputs.write == 'true' }}
+        run: |
+          json_file=$(find . -name 'pr-pulse-*.json')
+          echo "reading file: $json_file"
+          cat $json_file
