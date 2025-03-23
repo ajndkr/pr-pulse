@@ -11,8 +11,10 @@ ci:		## run pre-commit checks
 	uv run --only-dev pre-commit run --all
 
 run:	## run project
-	uv run main.py
+	uv run pr-pulse
 
 clean:	## clean project
-	rm -rfv .venv
 	find . -type d -name '__pycache__' -exec rm -rfv {} +
+
+clean-all: clean	## clean project and remove virtual environment
+	rm -rf .venv
