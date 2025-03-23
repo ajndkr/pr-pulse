@@ -1,14 +1,15 @@
-import typer
+import asyncio
 import datetime
+import json
+
+import typer
 from rich.console import Console
 from rich.table import Table
-import json
-import asyncio
 
 from pr_pulse import utils
 from pr_pulse.constants import OutputFormat
 
-app = typer.Typer(help="CLI tool for GitHub PR operations")
+app = typer.Typer()
 console = Console()
 
 

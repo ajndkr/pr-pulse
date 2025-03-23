@@ -1,14 +1,16 @@
-import pathlib
-import typer
+import asyncio
 import datetime
-from github import Github, Auth
 import os
+import pathlib
+from typing import List
+
+import typer
+from github import Auth, Github
+from github.PullRequest import PullRequest
+from github.Repository import Repository
+from google import genai
 from rich.console import Console
 from rich.table import Table
-from github.Repository import Repository
-from github.PullRequest import PullRequest
-import asyncio
-from typing import List
 
 from pr_pulse.constants import BATCH_SIZE, MAX_COMMENTS
 
@@ -203,3 +205,16 @@ def write_json_to_file(
     output_path.write_text(data)
     if verbose:
         console.print(f"[green]results written to:[/] {filename}")
+
+
+def setup_gemini_client(api_key: str | None, verbose: bool) -> genai.Client:
+    """Sets up Gemini client."""
+    api_key = api_key or os.environ.get("GENAI_API_KEY")
+    if not api_key:
+        console.print("[bold red]error:[/] GENAI_API_KEY environment variable not set")
+        raise typer.Exit(1)
+
+    if verbose:
+        console.print("[bold blue]initializing[/] Gemini AI client...")
+
+    return genai.Client(api_key=api_key)

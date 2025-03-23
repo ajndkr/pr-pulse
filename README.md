@@ -35,8 +35,9 @@ jobs:
 | `output_format` | Output format (table or json)                          | No       | table   |
 | `verbose`       | Show detailed progress logs                            | No       | false   |
 | `write`         | Write output to a file (only used with JSON format)    | No       | false   |
-| `command`       | Command to run (list, detail, summary)                 | No       | summary |
+| `command`       | Command to run (list, detail, summary, ai_report)      | No       | summary |
 | `pr_number`     | Pull request number (required only for detail command) | No       | -       |
+| `api_key`       | GEMINI API key (required only for ai_report command)   | No       | -       |
 
 ## getting started (local development)
 
@@ -70,5 +71,5 @@ make run
 - [x] create commands to fetch data from github
 - [x] convert project to github action to schedule cron jobs in target
       repository
-- [ ] add llm integration to generate weekly report
+- [x] add llm integration to generate weekly report
 - [ ] add slack integration to send weekly report
