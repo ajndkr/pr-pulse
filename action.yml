@@ -24,6 +24,10 @@ inputs:
     description: 'Show detailed progress logs'
     required: false
     default: 'false'
+  write:
+    description: 'Write JSON output to a file (only used with JSON format)'
+    required: false
+    default: 'false'
   command:
     description: 'Command to run (list, detail, summary)'
     required: false
@@ -42,5 +46,6 @@ runs:
     INPUT_DAYS: ${{ inputs.days }}
     INPUT_OUTPUT_FORMAT: ${{ inputs.output_format }}
     INPUT_VERBOSE: ${{ inputs.verbose }}
+    INPUT_WRITE: ${{ inputs.write }}
     INPUT_COMMAND: ${{ inputs.command }}
     INPUT_PR_NUMBER: ${{ inputs.pr_number }}
