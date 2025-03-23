@@ -27,3 +27,12 @@ to run pre-commit checks, run:
 ```shell
 make ci
 ```
+
+
+## project roadmap
+
+- [x] setup project
+- [x] create commands to fetch data from github
+- [ ] add llm integration to generate weekly report
+- [ ] add slack integration to send weekly report
+- [ ] convert project to GitHub action to schedule cron jobs in target repository
