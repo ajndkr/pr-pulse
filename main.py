@@ -66,7 +66,7 @@ def list(
 ):
     """Lists all merged pull requests for a repository within the specified time frame."""
     try:
-        repository, g = setup_github_client(repo, token, verbose)
+        _, g = setup_github_client(repo, token, verbose)
 
         end_date = datetime.datetime.now()
         start_date = end_date - datetime.timedelta(days=days)
@@ -93,6 +93,7 @@ def list(
             console.print(f"- query: {query}")
             raise typer.Exit(1)
 
+        table = None
         if output_format.lower() == OutputFormat.table:
             if verbose:
                 console.print("[bold blue]preparing[/] results table...")
@@ -107,17 +108,14 @@ def list(
         if verbose:
             console.print("[bold blue]processing[/] pull requests...")
         for pr in pulls:
-            if output_format.lower() == OutputFormat.table:
+            if table:
                 table.add_row(str(pr.number), pr.title, pr.user.login, pr.html_url)
             else:
                 pr_data.append(
                     dict(number=pr.number, title=pr.title, author=pr.user.login)
                 )
 
-        if verbose:
-            console.print("[bold blue]completed![/] displaying results:")
-
-        if output_format.lower() == OutputFormat.table:
+        if table:
             console.print(table)
         else:
             result = dict(
@@ -187,8 +185,6 @@ def detail(
         if pr.merged:
             pr_data["merged_at"] = pr.merged_at.strftime("%Y-%m-%d %H:%M")
 
-        if verbose:
-            console.print("\n[bold blue]fetching[/] pr comments...")
         comments = pr.get_issue_comments()
         comments_data = []
 
@@ -244,12 +240,7 @@ def detail(
                         f"\n[italic]...and {comments.totalCount - 5} more comments[/]"
                     )
 
-            if verbose:
-                console.print("\n[bold blue]completed![/] pr details displayed.")
-
-        else:  # json format
-            if verbose:
-                console.print("[bold blue]generating[/] json output...")
+        else:
             print(json.dumps(pr_data, indent=2))
 
     except Exception as e:
