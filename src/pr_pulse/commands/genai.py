@@ -24,7 +24,7 @@ def ai_report(
     ),
     api_key: str = typer.Option(
         None,
-        help="GEMINI API key. if not provided, will try to use GEMINI_API_KEY environment variable",
+        help="GEMINI API key. if not provided, will try to use GENAI_API_KEY environment variable",
     ),
     output_format: OutputFormat = typer.Option(
         OutputFormat.table,

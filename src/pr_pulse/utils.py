@@ -209,9 +209,9 @@ def write_json_to_file(
 
 def setup_gemini_client(api_key: str | None, verbose: bool) -> genai.Client:
     """Sets up Gemini client."""
-    api_key = api_key or os.environ.get("GEMINI_API_KEY")
+    api_key = api_key or os.environ.get("GENAI_API_KEY")
     if not api_key:
-        console.print("[bold red]error:[/] GEMINI_API_KEY environment variable not set")
+        console.print("[bold red]error:[/] GENAI_API_KEY environment variable not set")
         raise typer.Exit(1)
 
     if verbose:
