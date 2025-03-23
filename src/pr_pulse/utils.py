@@ -252,11 +252,10 @@ def create_report_slack_blocks(report: str):
     """Creates Slack blocks from report."""
     blocks = [
         {
-            "type": "header",
+            "type": "section",
             "text": {
-                "type": "plain_text",
-                "text": f"PR Pulse Report",
-                "emoji": True,
+                "type": "mrkdwn",
+                "text": f"*PR Pulse Report*",
             },
         },
         {
