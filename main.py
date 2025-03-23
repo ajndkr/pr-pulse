@@ -101,50 +101,18 @@ def list(
             table.add_column("pr #", justify="right", style="cyan")
             table.add_column("title", style="green")
             table.add_column("author", style="yellow")
-            table.add_column("merged at", style="magenta")
 
         pr_data = []
 
         if verbose:
-            console.print("[bold blue]fetching[/] details for each pull request...")
-        pr_count = 0
+            console.print("[bold blue]processing[/] pull requests...")
         for pr in pulls:
-            pr_count += 1
-            if verbose and pr_count % 5 == 0:
-                console.print(
-                    f"[bold blue]processing[/] pr #{pr.number} ({pr_count}/{pulls.totalCount})..."
-                )
-            try:
-                pull_request = repository.get_pull(pr.number)
-                if pull_request.merged_at:
-                    merged_at = pull_request.merged_at.strftime("%Y-%m-%d %H:%M")
-                    if output_format.lower() == OutputFormat.table:
-                        table.add_row(
-                            str(pr.number), pr.title, pr.user.login, merged_at
-                        )
-                    else:
-                        pr_data.append(
-                            {
-                                "number": pr.number,
-                                "title": pr.title,
-                                "author": pr.user.login,
-                                "merged_at": merged_at,
-                            }
-                        )
-            except Exception as e:
-                if verbose:
-                    console.print(
-                        f"[bold red]error:[/] failed to fetch PR #{pr.number}: {str(e)}"
-                    )
+            if output_format.lower() == OutputFormat.table:
+                table.add_row(str(pr.number), pr.title, pr.user.login, pr.html_url)
+            else:
                 pr_data.append(
-                    {
-                        "number": pr.number,
-                        "title": pr.title,
-                        "author": pr.user.login,
-                        "error": str(e),
-                    }
+                    dict(number=pr.number, title=pr.title, author=pr.user.login)
                 )
-                continue
 
         if verbose:
             console.print("[bold blue]completed![/] displaying results:")
@@ -152,12 +120,12 @@ def list(
         if output_format.lower() == OutputFormat.table:
             console.print(table)
         else:
-            result = {
-                "repository": repo,
-                "days_searched": days,
-                "total_prs": len(pr_data),
-                "pull_requests": pr_data,
-            }
+            result = dict(
+                repository=repo,
+                days_searched=days,
+                total_prs=len(pr_data),
+                pull_requests=pr_data,
+            )
             print(json.dumps(result, indent=2))
 
     except Exception as e:
