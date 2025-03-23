@@ -293,5 +293,96 @@ def main(ctx: typer.Context):
         typer.echo(ctx.get_help())
 
 
+@app.command()
+def summary(
+    repo: str = typer.Argument(..., help="GitHub repository in format 'owner/repo'"),
+    days: int = typer.Option(7, help="number of days to look back for PRs"),
+    token: str = typer.Option(
+        None,
+        help="GitHub personal access token. if not provided, will try to use GITHUB_TOKEN environment variable",
+    ),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.table,
+        "--format",
+        "-f",
+        help="output format",
+        show_choices=True,
+        case_sensitive=False,
+    ),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Show detailed progress logs"
+    ),
+):
+    """Provides a summary of all merged pull requests with their details."""
+    try:
+        repository, g = setup_github_client(repo, token, verbose)
+        pulls = search_merged_pull_requests(g, repo, days, verbose)
+
+        if verbose:
+            console.print("[bold blue]fetching[/] details for each PR...")
+
+        pr_details = []
+        pr_count = 0
+        for issue in pulls:
+            pr_count += 1
+            pr_number = issue.number
+            pr = get_pr_details(repository, pr_number, verbose)
+            pr_details.append(pr)
+
+        if output_format.lower() == OutputFormat.table:
+            summary_table = Table(title=f"PR summary for {repo} (last {days} days)")
+            summary_table.add_column("#", style="cyan", justify="right")
+            summary_table.add_column("title", style="green")
+            summary_table.add_column("author", style="yellow")
+            summary_table.add_column("merged at", style="magenta")
+
+            for pr in pr_details:
+                summary_table.add_row(
+                    str(pr.number),
+                    pr.title,
+                    pr.user.login,
+                    pr.merged_at.strftime("%Y-%m-%d %H:%M")
+                    if pr.merged
+                    else "Not merged",
+                )
+
+            console.print(summary_table)
+            console.print(f"\n[bold]total PRs:[/] {pr_count}")
+
+            for pr in pr_details:
+                console.print(f"\n[bold]===== PR #{pr.number}: {pr.title} =====\n[/]")
+                if pr.body:
+                    # escape any Rich markup in PR body to prevent rendering errors
+                    safe_body = pr.body.replace("[", "\\[").replace("]", "\\]")
+                    desc_table = Table(title=f"PR #{pr.number} Description")
+                    desc_table.add_column("Content", style="yellow")
+                    desc_table.add_row(safe_body)
+                    console.print(desc_table)
+                else:
+                    console.print("[italic]no description provided[/]")
+        else:
+            stats = dict(
+                repository=repo,
+                days_analyzed=days,
+                total_prs=pr_count,
+                date_range=dict(
+                    end=datetime.datetime.now().strftime("%Y-%m-%d"),
+                    start=(
+                        datetime.datetime.now() - datetime.timedelta(days=days)
+                    ).strftime("%Y-%m-%d"),
+                ),
+            )
+            formatted_prs = [
+                format_pr_data(pr, include_comments=True) for pr in pr_details
+            ]
+            output = dict(stats=stats, pull_requests=formatted_prs)
+
+            print(json.dumps(output))
+
+    except Exception as e:
+        console.print(f"[bold red]error:[/] {str(e)}")
+        raise typer.Exit(1)
+
+
 if __name__ == "__main__":
     app()
