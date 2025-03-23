@@ -39,6 +39,7 @@ jobs:
 | `pr_number`         | Pull request number for `detail` command                         | No       | -       |
 | `api_key`           | GEMINI API key for `report` command                              | No       | -       |
 | `slack_webhook_url` | Slack webhook URL for `notify` command                           | No       | -       |
+| `input_file`        | Input file path for `report` and `notify` commands               | No       | -       |
 
 **Note:** To create a Slack webhook URL, refer to
 [Slack Incoming Webhooks](https://api.slack.com/messaging/webhooks).
