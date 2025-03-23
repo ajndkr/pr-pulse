@@ -5,9 +5,16 @@ import os
 from rich.console import Console
 from rich.table import Table
 from dotenv import load_dotenv
+import json
+from enum import Enum
 
 app = typer.Typer(help="CLI tool for GitHub PR operations")
 console = Console()
+
+
+class OutputFormat(str, Enum):
+    table = "table"
+    json = "json"
 
 
 @app.command()
@@ -17,6 +24,17 @@ def list(
     token: str = typer.Option(
         None,
         help="GitHub personal access token. if not provided, will try to use GITHUB_TOKEN environment variable",
+    ),
+    output_format: OutputFormat = typer.Option(
+        OutputFormat.table,
+        "--format",
+        "-f",
+        help="output format",
+        show_choices=True,
+        case_sensitive=False,
+    ),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Show detailed progress logs"
     ),
 ):
     """Lists all merged pull requests for a repository within the specified time frame."""
@@ -28,12 +46,14 @@ def list(
             )
             raise typer.Exit(1)
 
-        console.print("[bold blue]authenticating[/] with github...")
+        if verbose:
+            console.print("[bold blue]authenticating[/] with github...")
         auth = Auth.Token(github_token)
         g = Github(auth=auth)
 
         try:
-            console.print(f"[bold blue]connecting[/] to repository {repo}...")
+            if verbose:
+                console.print(f"[bold blue]connecting[/] to repository {repo}...")
             repository = g.get_repo(repo)
         except Exception as e:
             console.print(
@@ -44,18 +64,21 @@ def list(
         end_date = datetime.datetime.now()
         start_date = end_date - datetime.timedelta(days=days)
 
-        console.print(
-            f"[bold blue]searching[/] PRs from the last {days} days (until {end_date.strftime('%Y-%m-%d')})"
-        )
+        if verbose:
+            console.print(
+                f"[bold blue]searching[/] PRs from the last {days} days (until {end_date.strftime('%Y-%m-%d')})"
+            )
 
         query = (
             f"repo:{repo} is:pr is:merged merged:>={start_date.strftime('%Y-%m-%d')}"
         )
 
-        console.print("[bold blue]searching[/] for merged pull requests...")
+        if verbose:
+            console.print("[bold blue]searching[/] for merged pull requests...")
         try:
             pulls = g.search_issues(query)
-            console.print(f"[bold blue]found[/] {pulls.totalCount} pull requests")
+            if verbose:
+                console.print(f"[bold blue]found[/] {pulls.totalCount} pull requests")
         except Exception as e:
             console.print(f"[bold red]error:[/] query failed: {str(e)}")
             console.print("[bold yellow]debugging info:[/]")
@@ -63,19 +86,24 @@ def list(
             console.print(f"- query: {query}")
             raise typer.Exit(1)
 
-        console.print("[bold blue]preparing[/] results table...")
+        if output_format.lower() == OutputFormat.table:
+            if verbose:
+                console.print("[bold blue]preparing[/] results table...")
 
-        table = Table(title=f"merged PRs in {repo} (last {days} days)")
-        table.add_column("pr #", justify="right", style="cyan")
-        table.add_column("title", style="green")
-        table.add_column("author", style="yellow")
-        table.add_column("merged at", style="magenta")
+            table = Table(title=f"merged PRs in {repo} (last {days} days)")
+            table.add_column("pr #", justify="right", style="cyan")
+            table.add_column("title", style="green")
+            table.add_column("author", style="yellow")
+            table.add_column("merged at", style="magenta")
 
-        console.print("[bold blue]fetching[/] details for each pull request...")
+        pr_data = []
+
+        if verbose:
+            console.print("[bold blue]fetching[/] details for each pull request...")
         pr_count = 0
         for pr in pulls:
             pr_count += 1
-            if pr_count % 5 == 0:
+            if verbose and pr_count % 5 == 0:
                 console.print(
                     f"[bold blue]processing[/] pr #{pr.number} ({pr_count}/{pulls.totalCount})..."
                 )
@@ -83,15 +111,47 @@ def list(
                 pull_request = repository.get_pull(pr.number)
                 if pull_request.merged_at:
                     merged_at = pull_request.merged_at.strftime("%Y-%m-%d %H:%M")
-                    table.add_row(str(pr.number), pr.title, pr.user.login, merged_at)
+                    if output_format.lower() == OutputFormat.table:
+                        table.add_row(
+                            str(pr.number), pr.title, pr.user.login, merged_at
+                        )
+                    else:
+                        pr_data.append(
+                            {
+                                "number": pr.number,
+                                "title": pr.title,
+                                "author": pr.user.login,
+                                "merged_at": merged_at,
+                            }
+                        )
             except Exception as e:
-                console.print(
-                    f"[bold red]error:[/] failed to fetch PR #{pr.number}: {str(e)}"
+                if verbose:
+                    console.print(
+                        f"[bold red]error:[/] failed to fetch PR #{pr.number}: {str(e)}"
+                    )
+                pr_data.append(
+                    {
+                        "number": pr.number,
+                        "title": pr.title,
+                        "author": pr.user.login,
+                        "error": str(e),
+                    }
                 )
                 continue
 
-        console.print("[bold blue]completed![/] displaying results:")
-        console.print(table)
+        if verbose:
+            console.print("[bold blue]completed![/] displaying results:")
+
+        if output_format.lower() == OutputFormat.table:
+            console.print(table)
+        else:
+            result = {
+                "repository": repo,
+                "days_searched": days,
+                "total_prs": len(pr_data),
+                "pull_requests": pr_data,
+            }
+            print(json.dumps(result, indent=2))
 
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")
