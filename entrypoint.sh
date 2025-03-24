@@ -45,7 +45,8 @@ elif [[ "$INPUT_COMMAND" == "list" ]]; then
 elif [[ "$INPUT_COMMAND" == "report" ]]; then
   pr-pulse report "$INPUT_FILE" \
     --api-key "$GENAI_API_KEY" \
-    $VERBOSE_FLAG
+    $VERBOSE_FLAG \
+    $WRITE_FLAG
 elif [[ "$INPUT_COMMAND" == "notify" ]]; then
   pr-pulse notify "$INPUT_FILE" \
     --webhook-url "$SLACK_WEBHOOK_URL" \
