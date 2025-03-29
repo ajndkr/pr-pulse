@@ -8,15 +8,25 @@ class OutputFormat(str, Enum):
 
 MAX_COMMENTS = 5
 BATCH_SIZE = 8
-REPORT_PROMPT = """Generate an executive summary of the provided merged pull request activity.
+REPORT_PROMPT = """Generate an executive summary of the pull request activity for the `{repository}` repository over the past {days_analyzed} days.
 
-No headers are required in the summary. Mention the number of pull requests merged over the target period, mentioning only the elapsed days/weeks as well as the repository name. Add a clap emoji at the end of this first line.
+Start with a brief overview stating the total number of merged PRs and end with a 👏 emoji.
 
-Pay attention to the pull request title, description and comments to understand the changes. Focus on top 5 functional changes and describe them as bullet points, removing any conventional commit tags (like "feat:", "fix:", "chore:", "docs:", etc.) from the bullet points.
+Next, provide 3-5 detailed bullet points highlighting the most significant changes based on:
+- Impact on user experience or functionality
+- Architectural changes or major refactoring
+- New features or capability additions
+- Security improvements
+- Performance optimizations
 
-For all other changes, mention them in a single paragraph. Add a raised hands emoji at the end of this paragraph.
+For each significant change:
+- Extract the core purpose (ignoring conventional commit prefixes)
+- Examine PR discussions for implementation details or challenges
+- Note any dependencies or related work
 
-Use Markdown formatting.
+Conclude with a brief paragraph summarizing other notable changes and end with a 🙌 emoji.
+
+Use professional, technical language with Markdown formatting.
 
 Data:
 
