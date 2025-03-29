@@ -28,7 +28,7 @@ def notify(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
 ):
-    """Sends PR Pulse report to Slack using blocks format."""
+    """Sends PR Pulse report to Slack using simple text format with markdown support."""
     try:
         webhook = utils.setup_slack_webhook_client(webhook_url, verbose)
 
@@ -44,13 +44,13 @@ def notify(
         if verbose:
             console.print("[bold blue]preparing[/] slack message...")
 
-        blocks = utils.create_report_slack_blocks(report)
+        message_text = utils.create_report_text(report)
 
         if verbose:
             console.print("[bold blue]sending[/] message to Slack...")
 
         try:
-            response = webhook.send(blocks=blocks)
+            response = webhook.send(text=message_text)
             if response.status_code == 200:
                 console.print("[bold green]success:[/] message sent to Slack")
             else:
