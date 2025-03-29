@@ -100,7 +100,7 @@ make run
 
 ## project roadmap
 
-### v1 phase
+### phase 1
 
 - [x] setup project
 - [x] create commands to fetch data from github
@@ -109,6 +109,6 @@ make run
 - [x] add llm integration to generate weekly report
 - [x] add slack integration to send weekly report
 
-### v2 phase
+### phase 2
 
 to be continued...
