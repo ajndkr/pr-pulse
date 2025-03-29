@@ -44,9 +44,23 @@ def report(
 
         try:
             with open(summary_json_file, "r") as f:
-                input_data = f.read()
+                input_data = json.load(f)
         except Exception as e:
             console.print(f"[bold red]error:[/] failed to read input file: {str(e)}")
+            raise typer.Exit(1)
+
+        try:
+            repository = input_data["stats"]["repository"]
+        except KeyError:
+            console.print("[bold red]error:[/] missing 'repository' key in input file")
+            raise typer.Exit(1)
+
+        try:
+            days_analyzed = input_data["stats"]["days_analyzed"]
+        except KeyError:
+            console.print(
+                "[bold red]error:[/] missing 'days_analyzed' key in input file"
+            )
             raise typer.Exit(1)
 
         if verbose:
@@ -63,7 +77,11 @@ def report(
         response = ""
         for chunk in client.models.generate_content_stream(
             model=model,
-            contents=REPORT_PROMPT.format(input_data=input_data),
+            contents=REPORT_PROMPT.format(
+                repository=repository,
+                days_analyzed=days_analyzed,
+                input_data=input_data,
+            ),
             config=generate_content_config,
         ):
             if stream:

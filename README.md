@@ -2,6 +2,34 @@
 
 generate weekly reports of all code changes in a github repository.
 
+<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 20px;">
+  <div>
+    <div style="height: 300px; overflow: hidden;">
+      <img src="./assets/list-demo.png" alt="List command output" width="100%" style="object-fit: contain; height: 100%;" />
+    </div>
+    <p align="center"><strong>List Command</strong>: Tabular view of merged PRs</p>
+  </div>
+  <div>
+    <div style="height: 300px; overflow: hidden;">
+      <img src="./assets/detail-demo.png" alt="Detail command output" width="100%" style="object-fit: contain; height: 100%;" />
+    </div>
+    <p align="center"><strong>Detail Command</strong>: Complete information about a specific PR</p>
+  </div>
+  <div>
+    <div style="height: 300px; overflow: hidden;">
+      <img src="./assets/summary-demo.png" alt="Summary command output" width="100%" style="object-fit: contain; height: 100%;" />
+    </div>
+    <p align="center"><strong>Summary Command</strong>: Overview of recent pull requests</p>
+  </div>
+  <div>
+    <div style="height: 300px; overflow: hidden;">
+      <img src="./assets/report-demo.png" alt="Report command output" width="100%" style="object-fit: contain; height: 100%;" />
+    </div>
+    <p align="center"><strong>Report Command</strong>: AI-generated summary of PR activity</p>
+  </div>
+</div>
+
+
 ## usage
 
 #### basic example
