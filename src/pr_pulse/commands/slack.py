@@ -2,6 +2,7 @@ from pathlib import Path
 
 import typer
 from rich.console import Console
+from slack_sdk.errors import SlackApiError
 
 from pr_pulse import utils
 
