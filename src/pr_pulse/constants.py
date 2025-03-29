@@ -23,6 +23,7 @@ For each significant change:
 - Extract the core purpose (ignoring conventional commit prefixes)
 - Examine PR discussions for implementation details or challenges
 - Note any dependencies or related work
+- Include the PR URL in markdown format [PR #{{number}}](url) at the end of each bullet point
 
 Conclude with a brief paragraph summarizing other notable changes and end with a 🙌 emoji.
 
