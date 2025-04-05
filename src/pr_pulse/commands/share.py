@@ -6,8 +6,17 @@ from slack_sdk.errors import SlackApiError
 
 from pr_pulse import utils
 
-app = typer.Typer()
+app = typer.Typer(
+    help="Share PR reports with others",
+    add_completion=False,
+)
 console = Console()
+
+
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context):
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
 
 
 @app.command()
