@@ -1,66 +1,40 @@
-name: 'PR Pulse'
-description: 'GitHub Action to analyze merged GitHub pull requests and generate Pulse insights'
-author: 'Ajinkya Indulkar'
+name: "PR Pulse"
+description: "GitHub Action to analyze merged GitHub pull requests and generate Pulse insights"
+author: "Ajinkya Indulkar"
 branding:
-  icon: 'activity'
-  color: 'blue'
+  icon: "activity"
+  color: "blue"
 
 inputs:
   github_token:
-    description: 'GitHub token for repository access'
+    description: "GitHub token for repository access"
+    required: true
+  api_key:
+    description: "GEMINI API key to generate insights summary"
     required: true
   repository:
-    description: 'Target repository in format owner/repo'
+    description: "Target repository in format owner/repo"
     required: true
   days:
-    description: 'Number of days to look back for PRs'
+    description: "Number of days to look back for PRs"
     required: false
-    default: '7'
-  output_format:
-    description: 'Output format (table or json)'
+    default: "7"
+  share:
+    description: "Share insights on Slack"
     required: false
-    default: 'table'
-  verbose:
-    description: 'Show detailed progress logs'
-    required: false
-    default: 'false'
-  write:
-    description: 'Write output to a file'
-    required: false
-    default: 'false'
-  command:
-    description: 'Command to run (list, detail, summary, report, notify)'
-    required: false
-    default: 'summary'
-  pr_number:
-    description: 'Pull request number for detail command'
-    required: false
-    default: ''
-  api_key:
-    description: 'GEMINI API key for report command'
-    required: false
-    default: ''
+    default: "false"
   slack_webhook_url:
-    description: 'Slack webhook URL for notify command'
+    description: "Slack webhook URL to share insights"
     required: false
-    default: ''
-  input_file:
-    description: 'Input file path for report and notify commands'
-    required: false
-    default: ''
+    default: ""
 
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: "docker"
+  image: "Dockerfile"
   env:
     GITHUB_TOKEN: ${{ inputs.github_token }}
     GENAI_API_KEY: ${{ inputs.api_key }}
-    SLACK_WEBHOOK_URL: ${{ inputs.slack_webhook_url }}
     INPUT_REPOSITORY: ${{ inputs.repository }}
     INPUT_DAYS: ${{ inputs.days }}
-    INPUT_OUTPUT_FORMAT: ${{ inputs.output_format }}
-    INPUT_VERBOSE: ${{ inputs.verbose }}
-    INPUT_WRITE: ${{ inputs.write }}
-    INPUT_COMMAND: ${{ inputs.command }}
-    INPUT_PR_NUMBER: ${{ inputs.pr_number }}
-    INPUT_FILE: ${{ inputs.input_file }}
+    INPUT_SHARE: ${{ inputs.share }}
+    SLACK_WEBHOOK_URL: ${{ inputs.slack_webhook_url }}

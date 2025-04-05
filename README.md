@@ -26,13 +26,14 @@ jobs:
 
 #### input parameters
 
-| Parameter           | Description                                                      | Required | Default |
-| ------------------- | ---------------------------------------------------------------- | -------- | ------- |
-| `github_token`      | GitHub token for repository access                               | Yes      | -       |
-| `repository`        | Target repository in format owner/repo                           | Yes      | -       |
-| `days`              | Number of days to look back for PRs                              | No       | 7       |
-| `api_key`           | GEMINI API key for `report` command                              | No       | -       |
-| `slack_webhook_url` | Slack webhook URL for `share` command                            | No       | -       |
+| Parameter           | Description                            | Required | Default |
+| ------------------- | -------------------------------------- | -------- | ------- |
+| `github_token`      | GitHub token for repository access     | Yes      | -       |
+| `api_key`           | GEMINI API key for `report` command    | No       | -       |
+| `slack_webhook_url` | Slack webhook URL for `share` command  | No       | -       |
+| `command`           | Command to run (summary, share)        | No       | summary |
+| `repository`        | Target repository in format owner/repo | Yes      | -       |
+| `days`              | Number of days to look back for PRs    | No       | 7       |
 
 **Note:** To create a Slack webhook URL, refer to
 [Slack Incoming Webhooks](https://api.slack.com/messaging/webhooks).
