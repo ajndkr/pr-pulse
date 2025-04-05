@@ -1,7 +1,7 @@
 [project]
 name = "pr-pulse"
 version = "0.1.0"
-description = "generate weekly reports of all code changes in a github repository"
+description = "A command-line tool for analyzing GitHub pull requests"
 readme = "README.md"
 authors = [
     { name = "Ajinkya Indulkar", email = "26824103+ajndkr@users.noreply.github.com" }
@@ -10,6 +10,7 @@ requires-python = ">=3.12"
 dependencies = [
     "asyncio>=3.4.3",
     "google-genai>=1.9.0",
+    "pydantic-settings>=2.8.1",
     "pygithub>=2.6.1",
     "python-dotenv>=1.1.0",
     "rich>=14.0.0",
