@@ -1,14 +1,15 @@
 import typer
 from dotenv import load_dotenv
 
-from pr_pulse.commands.genai import app as genai_app
-from pr_pulse.commands.gh import app as gh_app
-from pr_pulse.commands.slack import app as slack_app
+from pr_pulse.commands import analyze, get, share
 
-app = typer.Typer(help="PR Pulse CLI")
-app.add_typer(gh_app)
-app.add_typer(genai_app)
-app.add_typer(slack_app)
+app = typer.Typer(
+    help="PR Pulse: A command-line tool for analyzing GitHub pull requests",
+    add_completion=False,
+)
+app.add_typer(get.app, name="get", help="Fetch and view PR data from GitHub")
+app.add_typer(analyze.app, name="analyze", help="Analyze PR data and generate insights")
+app.add_typer(share.app, name="share", help="Share PR reports")
 
 
 @app.callback(invoke_without_command=True)
