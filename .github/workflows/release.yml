@@ -1,0 +1,31 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  update-major-version:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: code checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: update major version
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "new tag: $LATEST_TAG"
+
+          MAJOR_TAG=$(echo $LATEST_TAG | cut -d. -f1)
+
+          echo "update major version: $MAJOR_TAG"
+          git tag -f $MAJOR_TAG
+          git push -f origin $MAJOR_TAG
