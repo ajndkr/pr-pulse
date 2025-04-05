@@ -9,8 +9,17 @@ from rich.table import Table
 from pr_pulse import utils
 from pr_pulse.constants import OutputFormat
 
-app = typer.Typer()
+app = typer.Typer(
+    help="Get PR data from GitHub",
+    add_completion=False,
+)
 console = Console()
+
+
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context):
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
 
 
 @app.command()
