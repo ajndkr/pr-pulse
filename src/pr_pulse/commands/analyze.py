@@ -8,8 +8,17 @@ from rich.console import Console
 from pr_pulse import utils
 from pr_pulse.constants import REPORT_PROMPT
 
-app = typer.Typer()
+app = typer.Typer(
+    help="Analyze PR data and generate insights",
+    add_completion=False,
+)
 console = Console()
+
+
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context):
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
 
 
 @app.command()
