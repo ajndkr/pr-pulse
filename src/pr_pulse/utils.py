@@ -3,7 +3,6 @@ import datetime
 import os
 import pathlib
 import re
-from typing import List
 
 import typer
 from github import Auth, Github
@@ -14,19 +13,20 @@ from rich.console import Console
 from rich.table import Table
 from slack_sdk.webhook import WebhookClient
 
+from pr_pulse.config import get_config
 from pr_pulse.constants import BATCH_SIZE, MAX_COMMENTS
 
 console = Console()
 
 
 def setup_github_client(
-    repo: str, token: str | None, verbose: bool
+    repo: str, token: str | None, verbose: bool = get_config().verbose
 ) -> tuple[Repository, Github]:
     """Sets up GitHub client and repository instance."""
-    github_token = token or os.environ.get("GITHUB_TOKEN")
+    github_token = token or get_config().github_token
     if not github_token:
         console.print(
-            "[bold red]error:[/] GitHub token not provided and GITHUB_TOKEN environment variable not set"
+            "[bold red]error:[/] GitHub token not provided and not found in config"
         )
         raise typer.Exit(1)
 
@@ -45,7 +45,9 @@ def setup_github_client(
         raise typer.Exit(1)
 
 
-def search_merged_pull_requests(g: Github, repo: str, days: int, verbose: bool):
+def search_merged_pull_requests(
+    g: Github, repo: str, days: int, verbose: bool = get_config().verbose
+):
     """Searches for merged pull requests in a repository within the specified time frame."""
     end_date = datetime.datetime.now()
     start_date = end_date - datetime.timedelta(days=days)
@@ -73,7 +75,7 @@ def search_merged_pull_requests(g: Github, repo: str, days: int, verbose: bool):
 
 
 def get_pr_details(
-    repository: Repository, pr_number: int, verbose: bool
+    repository: Repository, pr_number: int, verbose: bool = get_config().verbose
 ) -> PullRequest:
     """Fetches details of a specific pull request."""
     try:
@@ -88,8 +90,8 @@ def get_pr_details(
 
 
 async def get_pr_details_batch(
-    repository: Repository, pr_numbers: List[int], verbose: bool
-) -> List[PullRequest]:
+    repository: Repository, pr_numbers: list[int], verbose: bool = get_config().verbose
+) -> list[PullRequest]:
     """Fetches details of pull requests in a batch."""
     results = []
 
@@ -198,7 +200,7 @@ def display_pr_details_table(pr: PullRequest, show_comments: bool = True):
 
 
 def write_json_to_file(
-    data: dict, prefix: str = "pr-pulse", verbose: bool = False
+    data: dict, prefix: str = "pr-pulse", verbose: bool = get_config().verbose
 ) -> None:
     """Writes JSON data to a file."""
     today = datetime.datetime.now().strftime("%d-%m-%Y")
@@ -210,7 +212,7 @@ def write_json_to_file(
 
 
 def write_text_to_file(
-    text: str, prefix: str = "pr-pulse", verbose: bool = False
+    text: str, prefix: str = "pr-pulse", verbose: bool = get_config().verbose
 ) -> None:
     """Writes text data to a file."""
     today = datetime.datetime.now().strftime("%d-%m-%Y")
@@ -221,11 +223,15 @@ def write_text_to_file(
         console.print(f"[green]results written to:[/] {filename}")
 
 
-def setup_gemini_client(api_key: str | None, verbose: bool) -> genai.Client:
+def setup_gemini_client(
+    api_key: str | None, verbose: bool = get_config().verbose
+) -> genai.Client:
     """Sets up Gemini client."""
-    api_key = api_key or os.environ.get("GENAI_API_KEY")
+    api_key = api_key or get_config().genai_api_key
     if not api_key:
-        console.print("[bold red]error:[/] GENAI_API_KEY environment variable not set")
+        console.print(
+            "[bold red]error:[/] Gemini API key not provided and not found in config"
+        )
         raise typer.Exit(1)
 
     if verbose:
@@ -234,12 +240,14 @@ def setup_gemini_client(api_key: str | None, verbose: bool) -> genai.Client:
     return genai.Client(api_key=api_key)
 
 
-def setup_slack_webhook_client(webhook_url: str | None, verbose: bool) -> WebhookClient:
+def setup_slack_webhook_client(
+    webhook_url: str | None, verbose: bool = get_config().verbose
+) -> WebhookClient:
     """Sets up Slack webhook client."""
-    webhook_url = webhook_url or os.environ.get("SLACK_WEBHOOK_URL")
+    webhook_url = webhook_url or get_config().slack_webhook_url
     if not webhook_url:
         console.print(
-            "[bold red]error:[/] Slack webhook URL not provided and SLACK_WEBHOOK_URL environment variable not set"
+            "[bold red]error:[/] Slack webhook URL not provided and not found in config"
         )
         raise typer.Exit(1)
 
