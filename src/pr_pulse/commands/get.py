@@ -28,7 +28,7 @@ def list(
     days: int = typer.Option(7, help="number of days to look back for PRs"),
     token: str = typer.Option(
         None,
-        help="GitHub personal access token. if not provided, will try to use GITHUB_TOKEN environment variable",
+        help="GitHub personal access token. if not provided, will try to use default config",
     ),
     output_format: OutputFormat = typer.Option(
         OutputFormat.table,
@@ -48,7 +48,7 @@ def list(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
 ):
-    """Lists all merged pull requests for a repository within the specified time frame."""
+    """Get list of merged pull requests within the specified time frame."""
     try:
         _, g = utils.setup_github_client(repo, token, verbose)
         pulls = utils.search_merged_pull_requests(g, repo, days, verbose)
@@ -122,7 +122,7 @@ def detail(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
 ):
-    """Shows details of a specific pull request including summary and top comments."""
+    """Get pull request details including description and comments."""
     try:
         repository, _ = utils.setup_github_client(repo, token, verbose)
         pr = utils.get_pr_details(repository, pr_number, verbose)
@@ -147,7 +147,7 @@ def detail(
 
 
 @app.command()
-def summary(
+def details(
     repo: str = typer.Argument(..., help="GitHub repository in format 'owner/repo'"),
     days: int = typer.Option(7, help="number of days to look back for PRs"),
     token: str = typer.Option(
@@ -172,7 +172,7 @@ def summary(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
 ):
-    """Provides a summary of all merged pull requests with their details."""
+    """Get details of all merged pull requests within the specified time frame."""
     try:
         repository, g = utils.setup_github_client(repo, token, verbose)
         pulls = utils.search_merged_pull_requests(g, repo, days, verbose)

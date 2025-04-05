@@ -9,7 +9,7 @@ from pr_pulse import utils
 from pr_pulse.constants import REPORT_PROMPT
 
 app = typer.Typer(
-    help="Analyze PR data and generate insights",
+    help="Analyze PR data and generate Pulse insights",
     add_completion=False,
 )
 console = Console()
@@ -22,10 +22,10 @@ def main(ctx: typer.Context):
 
 
 @app.command()
-def report(
-    summary_json_file: Path = typer.Argument(
+def summary(
+    details_json_file: Path = typer.Argument(
         ...,
-        help="Path to summary JSON file",
+        help="Path to details JSON file",
         exists=True,
         file_okay=True,
         dir_okay=False,
@@ -33,7 +33,7 @@ def report(
     ),
     api_key: str = typer.Option(
         None,
-        help="GEMINI API key. if not provided, will try to use GENAI_API_KEY environment variable",
+        help="GEMINI API key. if not provided, will try to use default config",
     ),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed progress logs"
@@ -43,7 +43,7 @@ def report(
         False, "--write", "-w", help="Write the generated report to a text file"
     ),
 ):
-    """Generates a report of pull request activity from a JSON file using Gemini AI."""
+    """Generates a Pulse insights summary using Gemini AI."""
     try:
         client = utils.setup_gemini_client(api_key, verbose)
         model = "gemini-2.0-flash"
@@ -52,7 +52,7 @@ def report(
             console.print("[bold blue]reading[/] input file...")
 
         try:
-            with open(summary_json_file, "r") as f:
+            with open(details_json_file, "r") as f:
                 input_data = json.load(f)
         except Exception as e:
             console.print(f"[bold red]error:[/] failed to read input file: {str(e)}")

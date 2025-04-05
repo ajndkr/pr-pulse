@@ -1,5 +1,5 @@
 name: 'PR Pulse'
-description: 'GitHub Action to analyze merged GitHub pull requests and generate reports'
+description: 'GitHub Action to analyze merged GitHub pull requests and generate Pulse insights'
 author: 'Ajinkya Indulkar'
 branding:
   icon: 'activity'

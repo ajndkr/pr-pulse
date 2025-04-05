@@ -7,7 +7,7 @@ from slack_sdk.errors import SlackApiError
 from pr_pulse import utils
 
 app = typer.Typer(
-    help="Share PR reports with others",
+    help="Share Pulse insights",
     add_completion=False,
 )
 console = Console()
@@ -20,7 +20,7 @@ def main(ctx: typer.Context):
 
 
 @app.command()
-def notify(
+def slack(
     input_file: Path = typer.Argument(
         ...,
         help="Path to input JSON file to read",
@@ -31,13 +31,13 @@ def notify(
     ),
     webhook_url: str = typer.Option(
         None,
-        help="Slack webhook URL. If not provided, will try to use SLACK_WEBHOOK_URL environment variable",
+        help="Slack webhook URL. if not provided, will try to use default config",
     ),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
 ):
-    """Sends PR Pulse report to Slack using simple text format with markdown support."""
+    """Shares Pulse insights on Slack."""
     try:
         webhook = utils.setup_slack_webhook_client(webhook_url, verbose)
 
