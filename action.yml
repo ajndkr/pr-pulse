@@ -1,5 +1,5 @@
 name: 'PR Pulse'
-description: 'Generate weekly reports of all code changes in a GitHub repository'
+description: 'GitHub Action to analyze merged GitHub pull requests and generate reports'
 author: 'Ajinkya Indulkar'
 branding:
   icon: 'activity'

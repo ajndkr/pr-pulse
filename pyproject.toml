@@ -1,7 +1,7 @@
 [project]
 name = "pr-pulse"
 version = "0.1.0"
-description = "A command-line tool for analyzing GitHub pull requests"
+description = "A command-line tool for analyzing merged GitHub pull requests"
 readme = "README.md"
 authors = [
     { name = "Ajinkya Indulkar", email = "26824103+ajndkr@users.noreply.github.com" }
