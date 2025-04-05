@@ -106,4 +106,6 @@ make run
 
 ### phase 2
 
-to be continued...
+- [ ] improve customisability of commands
+- [ ] add MCP support
+- [ ] add support for more LLM providers
