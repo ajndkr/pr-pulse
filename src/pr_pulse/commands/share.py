@@ -4,7 +4,7 @@ import typer
 from rich.console import Console
 from slack_sdk.errors import SlackApiError
 
-from pr_pulse import utils
+from pr_pulse.core import clients, slack
 
 app = typer.Typer(
     help="Share Pulse insights",
@@ -39,7 +39,7 @@ def slack(
 ):
     """Shares Pulse insights on Slack."""
     try:
-        webhook = utils.setup_slack_webhook_client(webhook_url, verbose)
+        webhook = clients.setup_slack_webhook_client(webhook_url, verbose)
 
         if verbose:
             console.print("[bold blue]reading[/] input file...")
@@ -53,7 +53,7 @@ def slack(
         if verbose:
             console.print("[bold blue]preparing[/] slack message...")
 
-        message_text = utils.create_report_text(report)
+        message_text = slack.create_report_text(report)
 
         if verbose:
             console.print("[bold blue]sending[/] message to Slack...")

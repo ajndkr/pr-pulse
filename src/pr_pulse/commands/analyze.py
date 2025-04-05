@@ -5,8 +5,8 @@ import typer
 from google.genai import types
 from rich.console import Console
 
-from pr_pulse import utils
 from pr_pulse.constants import REPORT_PROMPT
+from pr_pulse.core import clients, fio
 
 app = typer.Typer(
     help="Analyze PR data and generate Pulse insights",
@@ -45,7 +45,7 @@ def summary(
 ):
     """Generates a Pulse insights summary using Gemini AI."""
     try:
-        client = utils.setup_gemini_client(api_key, verbose)
+        client = clients.setup_gemini_client(api_key, verbose)
         model = "gemini-2.0-flash"
 
         if verbose:
@@ -103,7 +103,7 @@ def summary(
         if write:
             if verbose:
                 console.print("[bold blue]writing[/] report to file...")
-            utils.write_text_to_file(response, "pr-pulse-report", verbose)
+            fio.write_text_to_file(response, "pr-pulse-report", verbose)
 
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")

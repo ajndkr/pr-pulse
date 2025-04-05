@@ -6,8 +6,8 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from pr_pulse import utils
 from pr_pulse.constants import OutputFormat
+from pr_pulse.core import clients, fio, github
 
 app = typer.Typer(
     help="Get PR data from GitHub",
@@ -50,8 +50,8 @@ def list(
 ):
     """Get list of merged pull requests within the specified time frame."""
     try:
-        _, g = utils.setup_github_client(repo, token, verbose)
-        pulls = utils.search_merged_pull_requests(g, repo, days, verbose)
+        _, g = clients.setup_github_client(repo, token, verbose)
+        pulls = github.search_merged_pull_requests(g, repo, days, verbose)
 
         table = None
         if output_format.lower() == OutputFormat.table:
@@ -87,7 +87,7 @@ def list(
             json_output = json.dumps(result)
 
             if write:
-                utils.write_json_to_file(json_output, "pr-pulse-list", verbose)
+                fio.write_json_to_file(json_output, "pr-pulse-list", verbose)
 
             print(json_output)
 
@@ -124,20 +124,20 @@ def detail(
 ):
     """Get pull request details including description and comments."""
     try:
-        repository, _ = utils.setup_github_client(repo, token, verbose)
-        pr = utils.get_pr_details(repository, pr_number, verbose)
+        repository, _ = clients.setup_github_client(repo, token, verbose)
+        pr = github.get_pr_details(repository, pr_number, verbose)
 
         if verbose:
             console.print("[bold blue]preparing[/] pr details...")
 
         if output_format.lower() == OutputFormat.table:
-            utils.display_pr_details_table(pr)
+            github.display_pr_details_table(pr)
         else:
-            pr_data = utils.format_pr_data(pr)
+            pr_data = github.format_pr_data(pr)
             json_output = json.dumps(pr_data)
 
             if write:
-                utils.write_json_to_file(json_output, "pr-pulse-detail", verbose)
+                fio.write_json_to_file(json_output, "pr-pulse-detail", verbose)
 
             print(json_output)
 
@@ -174,8 +174,8 @@ def details(
 ):
     """Get details of all merged pull requests within the specified time frame."""
     try:
-        repository, g = utils.setup_github_client(repo, token, verbose)
-        pulls = utils.search_merged_pull_requests(g, repo, days, verbose)
+        repository, g = clients.setup_github_client(repo, token, verbose)
+        pulls = github.search_merged_pull_requests(g, repo, days, verbose)
 
         if verbose:
             console.print("[bold blue]fetching[/] details for each PR...")
@@ -184,7 +184,7 @@ def details(
         pr_count = len(pr_numbers)
 
         pr_details = asyncio.run(
-            utils.get_pr_details_batch(repository, pr_numbers, verbose)
+            github.get_pr_details_batch(repository, pr_numbers, verbose)
         )
 
         if output_format.lower() == OutputFormat.table:
@@ -231,13 +231,13 @@ def details(
                 ),
             )
             formatted_prs = [
-                utils.format_pr_data(pr, include_comments=True) for pr in pr_details
+                github.format_pr_data(pr, include_comments=True) for pr in pr_details
             ]
             output = dict(stats=stats, pull_requests=formatted_prs)
             json_output = json.dumps(output)
 
             if write:
-                utils.write_json_to_file(json_output, "pr-pulse-summary", verbose)
+                fio.write_json_to_file(json_output, "pr-pulse-summary", verbose)
 
             print(json_output)
 

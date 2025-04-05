@@ -1,48 +1,17 @@
 import asyncio
 import datetime
-import os
-import pathlib
-import re
 
 import typer
-from github import Auth, Github
+from github import Github
 from github.PullRequest import PullRequest
 from github.Repository import Repository
-from google import genai
 from rich.console import Console
 from rich.table import Table
-from slack_sdk.webhook import WebhookClient
 
 from pr_pulse.config import get_config
 from pr_pulse.constants import BATCH_SIZE, MAX_COMMENTS
 
 console = Console()
-
-
-def setup_github_client(
-    repo: str, token: str | None, verbose: bool = get_config().verbose
-) -> tuple[Repository, Github]:
-    """Sets up GitHub client and repository instance."""
-    github_token = token or get_config().github_token
-    if not github_token:
-        console.print(
-            "[bold red]error:[/] GitHub token not provided and not found in config"
-        )
-        raise typer.Exit(1)
-
-    if verbose:
-        console.print("[bold blue]authenticating[/] with github...")
-    auth = Auth.Token(github_token)
-    g = Github(auth=auth)
-
-    try:
-        if verbose:
-            console.print(f"[bold blue]connecting[/] to repository {repo}...")
-        repository = g.get_repo(repo)
-        return repository, g
-    except Exception as e:
-        console.print(f"[bold red]error:[/] could not find repository {repo}: {str(e)}")
-        raise typer.Exit(1)
 
 
 def search_merged_pull_requests(
@@ -197,94 +166,3 @@ def display_pr_details_table(pr: PullRequest, show_comments: bool = True):
             console.print(comments_table)
         else:
             console.print("\n[italic]no comments found[/]")
-
-
-def write_json_to_file(
-    data: dict, prefix: str = "pr-pulse", verbose: bool = get_config().verbose
-) -> None:
-    """Writes JSON data to a file."""
-    today = datetime.datetime.now().strftime("%d-%m-%Y")
-    filename = f"{prefix}-{today}.json"
-    output_path = pathlib.Path(filename)
-    output_path.write_text(data)
-    if verbose:
-        console.print(f"[green]results written to:[/] {filename}")
-
-
-def write_text_to_file(
-    text: str, prefix: str = "pr-pulse", verbose: bool = get_config().verbose
-) -> None:
-    """Writes text data to a file."""
-    today = datetime.datetime.now().strftime("%d-%m-%Y")
-    filename = f"{prefix}-{today}.txt"
-    output_path = pathlib.Path(filename)
-    output_path.write_text(text)
-    if verbose:
-        console.print(f"[green]results written to:[/] {filename}")
-
-
-def setup_gemini_client(
-    api_key: str | None, verbose: bool = get_config().verbose
-) -> genai.Client:
-    """Sets up Gemini client."""
-    api_key = api_key or get_config().genai_api_key
-    if not api_key:
-        console.print(
-            "[bold red]error:[/] Gemini API key not provided and not found in config"
-        )
-        raise typer.Exit(1)
-
-    if verbose:
-        console.print("[bold blue]initializing[/] Gemini AI client...")
-
-    return genai.Client(api_key=api_key)
-
-
-def setup_slack_webhook_client(
-    webhook_url: str | None, verbose: bool = get_config().verbose
-) -> WebhookClient:
-    """Sets up Slack webhook client."""
-    webhook_url = webhook_url or get_config().slack_webhook_url
-    if not webhook_url:
-        console.print(
-            "[bold red]error:[/] Slack webhook URL not provided and not found in config"
-        )
-        raise typer.Exit(1)
-
-    if verbose:
-        console.print("[bold blue]initializing[/] Slack client...")
-
-    return WebhookClient(webhook_url)
-
-
-def create_report_text(report: str) -> str:
-    """Creates Slack-compatible formatted text from a markdown report.
-
-    Transforms standard markdown to Slack's markdown variant by:
-    - Converting headers (##) and bold text (**) to Slack's bold syntax (*)
-    - Ensuring proper spacing around lists for Slack rendering
-    - Formatting code blocks with proper spacing
-    - Converting HTML code tags to backticks
-    - Reformatting links from [text](url) to Slack's <url|text> format
-    """
-    processed_report = report
-
-    # convert standard markdown headings/bold to Slack format
-    processed_report = re.sub(r"##\s+(.+)", r"*\1*", processed_report)
-    processed_report = re.sub(r"\*\*(.*?)\*\*", r"*\1*", processed_report)
-
-    # add necessary spacing before list items for Slack rendering
-    processed_report = re.sub(
-        r"([^\n])\n([\*\-\d+]\.?\s)", r"\1\n\n\2", processed_report
-    )
-
-    # ensure code blocks have proper Slack-required spacing
-    processed_report = re.sub(r"```([^`]+)```", r"```\n\1\n```", processed_report)
-
-    # convert HTML code tags to markdown backticks
-    processed_report = re.sub(r"<code>(.*?)</code>", r"`\1`", processed_report)
-
-    # convert markdown links to Slack's link format
-    processed_report = re.sub(r"\[(.*?)\]\((.*?)\)", r"<\2|\1>", processed_report)
-
-    return f"*PR Pulse Report*\n\n{processed_report}"
