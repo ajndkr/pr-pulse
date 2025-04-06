@@ -10,7 +10,7 @@ if [[ "$INPUT_SHARE" == "true" ]]; then
   SHARE_FLAG="--share"
 fi
 
-pr-pulse analyse summary "$INPUT_REPOSITORY" \
+pr-pulse analyze summary "$INPUT_REPOSITORY" \
   --days "$INPUT_DAYS" \
   --verbose \
   $SHARE_FLAG
