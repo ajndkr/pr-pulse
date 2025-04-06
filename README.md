@@ -30,10 +30,10 @@ jobs:
 | ------------------- | -------------------------------------- | -------- | ------- |
 | `github_token`      | GitHub token for repository access     | Yes      | -       |
 | `api_key`           | GEMINI API key for `report` command    | No       | -       |
-| `slack_webhook_url` | Slack webhook URL for `share` command  | No       | -       |
-| `command`           | Command to run (summary, share)        | No       | summary |
 | `repository`        | Target repository in format owner/repo | Yes      | -       |
 | `days`              | Number of days to look back for PRs    | No       | 7       |
+| `share`             | Share insights on Slack                | No       | false   |
+| `slack_webhook_url` | Slack webhook URL to share insights    | No       | -       |
 
 **Note:** To create a Slack webhook URL, refer to
 [Slack Incoming Webhooks](https://api.slack.com/messaging/webhooks).
