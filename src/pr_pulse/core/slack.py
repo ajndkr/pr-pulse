@@ -1,4 +1,11 @@
 import re
+from pathlib import Path
+
+from rich.console import Console
+from slack_sdk.errors import SlackApiError
+from slack_sdk.webhook import WebhookClient
+
+console = Console()
 
 
 def create_report_text(report: str) -> str:
@@ -32,3 +39,39 @@ def create_report_text(report: str) -> str:
     processed_report = re.sub(r"\[(.*?)\]\((.*?)\)", r"<\2|\1>", processed_report)
 
     return f"*PR Pulse Report*\n\n{processed_report}"
+
+
+def share_report_to_slack(
+    input_file: Path,
+    webhook: WebhookClient,
+    verbose: bool = False,
+) -> None:
+    """Shares a PR Pulse report to Slack."""
+    if verbose:
+        console.print("[bold blue]reading[/] input file...")
+
+    try:
+        report = input_file.read_text()
+    except Exception as e:
+        console.print(f"[bold red]error:[/] failed to read input file: {str(e)}")
+        raise e
+
+    if verbose:
+        console.print("[bold blue]preparing[/] slack message...")
+
+    message_text = create_report_text(report)
+
+    if verbose:
+        console.print("[bold blue]sending[/] message to Slack...")
+
+    try:
+        response = webhook.send(text=message_text)
+        if response.status_code == 200:
+            console.print("[bold green]success:[/] message sent to Slack")
+        else:
+            console.print(
+                f"[bold red]error:[/] failed to send message: {response.body}"
+            )
+    except SlackApiError as e:
+        console.print(f"[bold red]error:[/] Slack API error: {str(e)}")
+        raise e

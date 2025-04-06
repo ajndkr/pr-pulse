@@ -2,7 +2,6 @@ import asyncio
 import datetime
 from typing import Any
 
-import typer
 from github import Github
 from github.PullRequest import PullRequest
 from github.Repository import Repository
@@ -57,7 +56,7 @@ def search_merged_pull_requests(
         console.print("[bold yellow]debugging info:[/]")
         console.print(f"- repository: {repo}")
         console.print(f"- query: {query}")
-        raise typer.Exit(1)
+        raise e
 
 
 def get_pr_details(
@@ -72,7 +71,7 @@ def get_pr_details(
         console.print(
             f"[bold red]error:[/] could not find pr #{pr_number} in repository {repository.full_name}: {str(e)}"
         )
-        raise typer.Exit(1)
+        raise e
 
 
 async def get_pr_details_batch(
