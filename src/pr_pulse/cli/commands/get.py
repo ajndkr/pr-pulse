@@ -37,7 +37,7 @@ def list(
         False,
         "--write",
         "-w",
-        help="Write JSON output to a file (only used with JSON format)",
+        help="Write JSON output to a file (pass '-f json' to enable)",
     ),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed progress logs"
@@ -79,7 +79,7 @@ def detail(
         False,
         "--write",
         "-w",
-        help="Write JSON output to a file (only used with JSON format)",
+        help="Write JSON output to a file (pass '-f json' to enable)",
     ),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed progress logs"
@@ -121,7 +121,7 @@ def details(
         False,
         "--write",
         "-w",
-        help="Write JSON output to a file (only used with JSON format)",
+        help="Write JSON output to a file (pass '-f json' to enable)",
     ),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed progress logs"
