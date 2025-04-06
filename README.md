@@ -1,73 +1,44 @@
 # pr-pulse
 
-generate weekly reports of all code changes in a github repository.
-
-<table>
-  <tr>
-    <td align="center">
-      <img src="./assets/list-demo.png" alt="List command output" width="100%" /><br>
-      <b>List Command</b>: Tabular view of merged PRs
-    </td>
-    <td align="center">
-      <img src="./assets/detail-demo.png" alt="Detail command output" width="100%" /><br>
-      <b>Detail Command</b>: Complete information about a specific PR
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <img src="./assets/summary-demo.png" alt="Summary command output" width="100%" /><br>
-      <b>Summary Command</b>: Overview of recent pull requests
-    </td>
-    <td align="center">
-      <img src="./assets/report-demo.png" alt="Report command output" width="100%" /><br>
-      <b>Report Command</b>: AI-generated summary of PR activity
-    </td>
-  </tr>
-</table>
+Analyze merged pull requests and generate insights.
 
 ## usage
 
 #### basic example
 
 ```yaml
-name: weekly-pr-report
+name: pr-pulse-insights
 on:
   schedule:
     - cron: "0 8 * * 1" # Runs at 8:00 AM UTC every Monday
 
 jobs:
-  generate-report:
+  run:
     runs-on: ubuntu-latest
     steps:
-      - name: generate pr report
-        uses: ajndkr/pr-pulse@main
+      - name: generate insights summary
+        uses: ajndkr/pr-pulse@v0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           repository: "owner/repo"
           days: "7"
-          command: "summary"
 ```
 
 #### input parameters
 
-| Parameter           | Description                                                      | Required | Default |
-| ------------------- | ---------------------------------------------------------------- | -------- | ------- |
-| `github_token`      | GitHub token for repository access                               | Yes      | -       |
-| `repository`        | Target repository in format owner/repo                           | Yes      | -       |
-| `days`              | Number of days to look back for PRs                              | No       | 7       |
-| `output_format`     | Output format (table or json)                                    | No       | table   |
-| `verbose`           | Show detailed progress logs                                      | No       | false   |
-| `write`             | Write output to a file                                           | No       | false   |
-| `command`           | Command to run (`list`, `detail`, `summary`, `report`, `notify`) | No       | summary |
-| `pr_number`         | Pull request number for `detail` command                         | No       | -       |
-| `api_key`           | GEMINI API key for `report` command                              | No       | -       |
-| `slack_webhook_url` | Slack webhook URL for `notify` command                           | No       | -       |
-| `input_file`        | Input file path for `report` and `notify` commands               | No       | -       |
+| Parameter           | Description                            | Required | Default |
+| ------------------- | -------------------------------------- | -------- | ------- |
+| `github_token`      | GitHub token for repository access     | Yes      | -       |
+| `api_key`           | GEMINI API key for `report` command    | No       | -       |
+| `slack_webhook_url` | Slack webhook URL for `share` command  | No       | -       |
+| `command`           | Command to run (summary, share)        | No       | summary |
+| `repository`        | Target repository in format owner/repo | Yes      | -       |
+| `days`              | Number of days to look back for PRs    | No       | 7       |
 
 **Note:** To create a Slack webhook URL, refer to
 [Slack Incoming Webhooks](https://api.slack.com/messaging/webhooks).
 
-## getting started (local development)
+## local development
 
 ### pre-requisites
 

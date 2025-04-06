@@ -4,66 +4,35 @@ on:
   workflow_dispatch:
     inputs:
       repository:
-        description: 'target repository in format owner/repo'
+        description: "target repository in format owner/repo"
         required: true
         type: string
       days:
-        description: 'number of days to look back for PRs'
+        description: "number of days to look back for PRs"
         required: false
-        default: '7'
+        default: "7"
         type: string
-      output_format:
-        description: 'output format (table or json)'
+      share:
+        description: "share insights on Slack"
         required: false
-        default: 'table'
-        type: choice
-        options:
-          - table
-          - json
-      verbose:
-        description: 'show detailed progress logs'
-        required: false
-        default: 'false'
+        default: "false"
         type: boolean
-      write:
-        description: 'write JSON output to a file (only used with JSON format)'
+      slack_webhook_url:
+        description: "Slack webhook URL to share insights"
         required: false
-        default: 'false'
-        type: boolean
-      command:
-        description: 'command to run'
-        required: false
-        default: 'summary'
-        type: choice
-        options:
-          - list
-          - detail
-          - summary
-      pr_number:
-        description: 'pull request number (required only for detail command)'
-        required: false
-        default: ''
+        default: ""
         type: string
 
 jobs:
-  test-action:
+  run:
     runs-on: ubuntu-latest
     steps:
-      - name: run pr-pulse action
-        uses: ajndkr/pr-pulse@main
+      - name: generate insights summary
+        uses: ajndkr/pr-pulse@v0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          api_key: ${{ secrets.GEMINI_API_KEY }}
           repository: ${{ github.event.inputs.repository }}
           days: ${{ github.event.inputs.days }}
-          output_format: ${{ github.event.inputs.output_format }}
-          verbose: ${{ github.event.inputs.verbose }}
-          write: ${{ github.event.inputs.write }}
-          command: ${{ github.event.inputs.command }}
-          pr_number: ${{ github.event.inputs.pr_number }}
-
-      - name: read json output
-        if: ${{ github.event.inputs.output_format == 'json' && github.event.inputs.write == 'true' }}
-        run: |
-          json_file=$(find . -name 'pr-pulse-*.json')
-          echo "reading file: $json_file"
-          cat $json_file
+          share: ${{ github.event.inputs.share }}
+          slack_webhook_url: ${{ github.event.inputs.slack_webhook_url }}

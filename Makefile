@@ -18,7 +18,3 @@ clean:	## clean project
 
 clean-all: clean	## clean project and remove virtual environment
 	rm -rf .venv
-
-reset-v0-tag:	## reset v0 tag
-	git tag -f v0
-	git push -f origin v0
