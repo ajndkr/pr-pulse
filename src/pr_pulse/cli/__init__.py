@@ -1,5 +1,4 @@
 import typer
-from dotenv import load_dotenv
 
 from .commands import analyze, get, share
 
@@ -17,7 +16,5 @@ app.add_typer(share.app, name="share", help="Share Pulse reports")
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context):
     """CLI Entrypoint"""
-    load_dotenv()
-
     if ctx.invoked_subcommand is None:
         typer.echo(ctx.get_help())
