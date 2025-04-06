@@ -4,7 +4,9 @@ import typer
 from rich.console import Console
 
 from pr_pulse.constants import OutputFormat
-from pr_pulse.core import clients, fio, github
+from pr_pulse.core import github
+from pr_pulse.core.clients import setup_github_client
+from pr_pulse.core.fio import write_json_to_file
 
 app = typer.Typer(
     help="Get PR data from GitHub",
@@ -43,7 +45,7 @@ def list(
 ):
     """Get list of merged pull requests over the past specified number of days"""
     try:
-        _, g = clients.setup_github_client(repo, verbose)
+        _, g = setup_github_client(repo, verbose)
 
         result, pulls = github.get_pr_list_data(g, repo, days, verbose)
 
@@ -54,7 +56,7 @@ def list(
             print(json_output)
 
             if write:
-                fio.write_json_to_file(json_output, "pr-pulse-list", verbose)
+                write_json_to_file(json_output, "pr-pulse-list", verbose)
 
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")
@@ -85,7 +87,7 @@ def detail(
 ):
     """Get pull request details including description and comments over the past specified number of days"""
     try:
-        repository, _ = clients.setup_github_client(repo, verbose)
+        repository, _ = setup_github_client(repo, verbose)
 
         pr_data, pr = github.get_pr_detail_data(repository, pr_number, verbose)
 
@@ -96,7 +98,7 @@ def detail(
             print(json_output)
 
             if write:
-                fio.write_json_to_file(json_output, "pr-pulse-detail", verbose)
+                write_json_to_file(json_output, "pr-pulse-detail", verbose)
 
     except Exception as e:
         console.print(f"[bold red]error:[/] {str(e)}")
@@ -127,7 +129,7 @@ def details(
 ):
     """Get details of all merged pull requests over the past specified number of days"""
     try:
-        repository, g = clients.setup_github_client(repo, verbose)
+        repository, g = setup_github_client(repo, verbose)
 
         result = github.get_prs_details_data(repository, g, repo, days, verbose)
 
@@ -142,7 +144,7 @@ def details(
             json_output = json.dumps(output)
 
             if write:
-                fio.write_json_to_file(json_output, "pr-pulse-summary", verbose)
+                write_json_to_file(json_output, "pr-pulse-summary", verbose)
 
             print(json_output)
 

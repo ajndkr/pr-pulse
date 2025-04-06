@@ -1,7 +1,10 @@
 import typer
 from rich.console import Console
 
-from pr_pulse.core import chains, clients, github, slack
+from pr_pulse.core import clients
+from pr_pulse.core.chains import generate_pr_summary_from_data
+from pr_pulse.core.github import get_prs_details_data
+from pr_pulse.core.slack import create_report_text
 
 app = typer.Typer(
     help="Analyze PR data and generate Pulse insights",
@@ -34,10 +37,10 @@ def summary(
     """Generates a Pulse insights summary using Gemini AI"""
     try:
         repository, g = clients.setup_github_client(repo, verbose)
-        pr_data = github.get_prs_details_data(repository, g, repo, days, verbose)
+        pr_data = get_prs_details_data(repository, g, repo, days, verbose)
 
         gemini_client = clients.setup_gemini_client(verbose)
-        report = chains.generate_pr_summary_from_data(
+        report = generate_pr_summary_from_data(
             pr_data=pr_data,
             llm=gemini_client,
             stream=stream,
@@ -49,7 +52,7 @@ def summary(
             if verbose:
                 console.print("[bold blue]sharing[/] report to Slack...")
             webhook = clients.setup_slack_webhook_client(verbose)
-            slack_message = slack.create_report_text(report)
+            slack_message = create_report_text(report)
 
             try:
                 response = webhook.send(text=slack_message)
