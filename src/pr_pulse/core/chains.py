@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Any
 
 from google import genai
 from google.genai import types
@@ -12,35 +13,20 @@ from .fio import write_text_to_file
 console = Console()
 
 
-def generate_pr_summary(
-    details_json_file: Path,
+def generate_pr_summary_from_data(
+    pr_data: dict[str, Any],
     llm: genai.Client,
     model: str = "gemini-2.0-flash",
     stream: bool = False,
     verbose: bool = False,
     write: bool = False,
 ) -> str:
-    """Generates a PR Pulse insights summary using Gemini AI."""
-    if verbose:
-        console.print("[bold blue]reading[/] input file...")
-
+    """Generates a PR Pulse insights summary using Gemini AI from PR data directly."""
     try:
-        with open(details_json_file, "r") as f:
-            input_data = json.load(f)
-    except Exception as e:
-        console.print(f"[bold red]error:[/] failed to read input file: {str(e)}")
-        raise e
-
-    try:
-        repository = input_data["stats"]["repository"]
-    except KeyError:
-        console.print("[bold red]error:[/] missing 'repository' key in input file")
-        raise e
-
-    try:
-        days_analyzed = input_data["stats"]["days_analyzed"]
-    except KeyError:
-        console.print("[bold red]error:[/] missing 'days_analyzed' key in input file")
+        repository = pr_data["stats"]["repository"]
+        days_analyzed = pr_data["stats"]["days_analyzed"]
+    except KeyError as e:
+        console.print(f"[bold red]error:[/] missing required key in PR data: {str(e)}")
         raise e
 
     if verbose:
@@ -60,7 +46,7 @@ def generate_pr_summary(
         contents=REPORT_PROMPT.format(
             repository=repository,
             days_analyzed=days_analyzed,
-            input_data=input_data,
+            input_data=pr_data,
         ),
         config=generate_content_config,
     )
@@ -79,3 +65,32 @@ def generate_pr_summary(
         write_text_to_file(response, "pr-pulse-report", verbose)
 
     return response
+
+
+def generate_pr_summary_from_file(
+    details_json_file: Path,
+    llm: genai.Client,
+    model: str = "gemini-2.0-flash",
+    stream: bool = False,
+    verbose: bool = False,
+    write: bool = False,
+) -> str:
+    """Generates a PR Pulse insights summary using Gemini AI from a JSON file."""
+    if verbose:
+        console.print("[bold blue]reading[/] input file...")
+
+    try:
+        with open(details_json_file, "r") as f:
+            input_data = json.load(f)
+    except Exception as e:
+        console.print(f"[bold red]error:[/] failed to read input file: {str(e)}")
+        raise e
+
+    return generate_pr_summary_from_data(
+        pr_data=input_data,
+        llm=llm,
+        model=model,
+        stream=stream,
+        verbose=verbose,
+        write=write,
+    )

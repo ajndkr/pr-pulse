@@ -2,7 +2,6 @@ import json
 
 import typer
 from rich.console import Console
-from rich.table import Table
 
 from pr_pulse.constants import OutputFormat
 from pr_pulse.core import clients, fio, github
