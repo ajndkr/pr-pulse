@@ -1,4 +1,5 @@
 import datetime
+import json
 import pathlib
 
 from rich.console import Console
@@ -15,7 +16,7 @@ def write_json_to_file(
     today = datetime.datetime.now().strftime("%d-%m-%Y")
     filename = f"{prefix}-{today}.json"
     output_path = pathlib.Path(filename)
-    output_path.write_text(data)
+    output_path.write_text(json.dumps(data))
     if verbose:
         console.print(f"[green]results written to:[/] {filename}")
 
