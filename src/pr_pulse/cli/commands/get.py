@@ -41,7 +41,7 @@ def list(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
 ):
-    """Get list of merged pull requests within the specified time frame."""
+    """Get list of merged pull requests over the past specified number of days"""
     try:
         _, g = clients.setup_github_client(repo, verbose)
 
@@ -83,7 +83,7 @@ def detail(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
 ):
-    """Get pull request details including description and comments."""
+    """Get pull request details including description and comments over the past specified number of days"""
     try:
         repository, _ = clients.setup_github_client(repo, verbose)
 
@@ -125,7 +125,7 @@ def details(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
 ):
-    """Get details of all merged pull requests within the specified time frame."""
+    """Get details of all merged pull requests over the past specified number of days"""
     try:
         repository, g = clients.setup_github_client(repo, verbose)
 

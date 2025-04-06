@@ -31,7 +31,7 @@ def summary(
         False, "--share", help="Share the generated report to Slack"
     ),
 ):
-    """Generates a Pulse insights summary using Gemini AI."""
+    """Generates a Pulse insights summary using Gemini AI"""
     try:
         repository, g = clients.setup_github_client(repo, verbose)
         pr_data = github.get_prs_details_data(repository, g, repo, days, verbose)
