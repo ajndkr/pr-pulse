@@ -1,7 +1,7 @@
 import typer
 from dotenv import load_dotenv
 
-from pr_pulse.commands import analyze, get, share
+from .commands import analyze, get, share
 
 app = typer.Typer(
     help="PR Pulse: A command-line tool for analyzing GitHub pull requests",
