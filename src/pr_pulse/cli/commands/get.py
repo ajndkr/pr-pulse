@@ -23,10 +23,6 @@ def main(ctx: typer.Context):
 def list(
     repo: str = typer.Argument(..., help="GitHub repository in format 'owner/repo'"),
     days: int = typer.Option(7, help="number of days to look back for PRs"),
-    token: str = typer.Option(
-        None,
-        help="GitHub personal access token. if not provided, will try to use default config",
-    ),
     output_format: OutputFormat = typer.Option(
         OutputFormat.table,
         "--format",
@@ -47,7 +43,7 @@ def list(
 ):
     """Get list of merged pull requests within the specified time frame."""
     try:
-        _, g = clients.setup_github_client(repo, token, verbose)
+        _, g = clients.setup_github_client(repo, verbose)
 
         result, pulls = github.get_pr_list_data(g, repo, days, verbose)
 
@@ -69,10 +65,6 @@ def list(
 def detail(
     repo: str = typer.Argument(..., help="GitHub repository in format 'owner/repo'"),
     pr_number: int = typer.Argument(..., help="Pull request number"),
-    token: str = typer.Option(
-        None,
-        help="GitHub personal access token. If not provided, will try to use GITHUB_TOKEN environment variable",
-    ),
     output_format: OutputFormat = typer.Option(
         OutputFormat.table,
         "--format",
@@ -93,7 +85,7 @@ def detail(
 ):
     """Get pull request details including description and comments."""
     try:
-        repository, _ = clients.setup_github_client(repo, token, verbose)
+        repository, _ = clients.setup_github_client(repo, verbose)
 
         pr_data, pr = github.get_pr_detail_data(repository, pr_number, verbose)
 
@@ -115,10 +107,6 @@ def detail(
 def details(
     repo: str = typer.Argument(..., help="GitHub repository in format 'owner/repo'"),
     days: int = typer.Option(7, help="number of days to look back for PRs"),
-    token: str = typer.Option(
-        None,
-        help="GitHub personal access token. if not provided, will try to use GITHUB_TOKEN environment variable",
-    ),
     output_format: OutputFormat = typer.Option(
         OutputFormat.table,
         "--format",
@@ -139,7 +127,7 @@ def details(
 ):
     """Get details of all merged pull requests within the specified time frame."""
     try:
-        repository, g = clients.setup_github_client(repo, token, verbose)
+        repository, g = clients.setup_github_client(repo, verbose)
 
         result = github.get_prs_details_data(repository, g, repo, days, verbose)
 

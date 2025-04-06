@@ -20,14 +20,6 @@ def main(ctx: typer.Context):
 def summary(
     repo: str = typer.Argument(..., help="GitHub repository in format 'owner/repo'"),
     days: int = typer.Option(7, help="Number of days to look back for PRs"),
-    github_token: str = typer.Option(
-        None,
-        help="GitHub personal access token. If not provided, will try to use default config",
-    ),
-    api_key: str = typer.Option(
-        None,
-        help="GEMINI API key. If not provided, will try to use default config",
-    ),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Show detailed progress logs"
     ),
@@ -38,17 +30,13 @@ def summary(
     share: bool = typer.Option(
         False, "--share", help="Share the generated report to Slack"
     ),
-    webhook_url: str = typer.Option(
-        None,
-        help="Slack webhook URL. If not provided, will try to use default config",
-    ),
 ):
     """Generates a Pulse insights summary using Gemini AI."""
     try:
-        repository, g = clients.setup_github_client(repo, github_token, verbose)
+        repository, g = clients.setup_github_client(repo, verbose)
         pr_data = github.get_prs_details_data(repository, g, repo, days, verbose)
 
-        gemini_client = clients.setup_gemini_client(api_key, verbose)
+        gemini_client = clients.setup_gemini_client(verbose)
         report = chains.generate_pr_summary_from_data(
             pr_data=pr_data,
             llm=gemini_client,
@@ -60,7 +48,7 @@ def summary(
         if share:
             if verbose:
                 console.print("[bold blue]sharing[/] report to Slack...")
-            webhook = clients.setup_slack_webhook_client(webhook_url, verbose)
+            webhook = clients.setup_slack_webhook_client(verbose)
             slack_message = slack.create_report_text(report)
 
             try:

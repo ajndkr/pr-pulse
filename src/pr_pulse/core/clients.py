@@ -11,11 +11,10 @@ console = Console()
 
 
 def setup_github_client(
-    repo: str, token: str | None, verbose: bool = get_config().verbose
+    repo: str, verbose: bool = get_config().verbose
 ) -> tuple[Repository, Github]:
     """Sets up GitHub client and repository instance."""
-    github_token = token or get_config().github_token
-    if not github_token:
+    if not (github_token := get_config().github_token):
         console.print(
             "[bold red]error:[/] GitHub token not provided and not found in config"
         )
@@ -36,12 +35,9 @@ def setup_github_client(
         raise typer.Exit(1)
 
 
-def setup_gemini_client(
-    api_key: str | None, verbose: bool = get_config().verbose
-) -> genai.Client:
+def setup_gemini_client(verbose: bool = get_config().verbose) -> genai.Client:
     """Sets up Gemini client."""
-    api_key = api_key or get_config().genai_api_key
-    if not api_key:
+    if not (api_key := get_config().genai_api_key):
         console.print(
             "[bold red]error:[/] Gemini API key not provided and not found in config"
         )
@@ -53,12 +49,9 @@ def setup_gemini_client(
     return genai.Client(api_key=api_key)
 
 
-def setup_slack_webhook_client(
-    webhook_url: str | None, verbose: bool = get_config().verbose
-) -> WebhookClient:
+def setup_slack_webhook_client(verbose: bool = get_config().verbose) -> WebhookClient:
     """Sets up Slack webhook client."""
-    webhook_url = webhook_url or get_config().slack_webhook_url
-    if not webhook_url:
+    if not (webhook_url := get_config().slack_webhook_url):
         console.print(
             "[bold red]error:[/] Slack webhook URL not provided and not found in config"
         )
