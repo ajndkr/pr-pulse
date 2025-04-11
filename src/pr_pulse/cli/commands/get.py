@@ -2,11 +2,12 @@ import json
 
 import typer
 from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from pr_pulse.constants import OutputFormat
 from pr_pulse.core import github
-from pr_pulse.core.clients import setup_github_client
-from pr_pulse.core.fio import write_json_to_file
+from pr_pulse.core.clients import ClientError, setup_github_client
+from pr_pulse.core.io import write_json_to_file
 
 app = typer.Typer(
     help="Get PR data from GitHub",
@@ -45,21 +46,34 @@ def list(
 ):
     """Get list of merged pull requests over the past specified number of days"""
     try:
-        _, g = setup_github_client(repo, verbose)
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[bold blue]{task.description}"),
+            transient=True,
+            disable=not verbose,
+        ) as progress:
+            task = progress.add_task("Setting up GitHub client...", total=None)
+            github_repo, _, _ = setup_github_client(repo, verbose)
 
-        result, pulls = github.get_pr_list_data(g, repo, days, verbose)
+            progress.update(task, description="Fetching PR list...")
+            result, pulls = github_repo.get_pr_list_data(repo, days)
 
-        if output_format.lower() == OutputFormat.table:
-            github.display_pr_list_table(pulls, repo, days)
-        else:
-            json_output = json.dumps(result)
-            print(json_output)
+            if output_format.lower() == OutputFormat.table:
+                github.display_pr_list_table(pulls, repo, days)
+            else:
+                json_output = result.json()
+                print(json_output)
 
-            if write:
-                write_json_to_file(json_output, "pr-pulse-list", verbose)
+                if write:
+                    write_json_to_file(json_output, "pr-pulse-list", verbose)
 
-    except Exception as e:
+    except ClientError as e:
         console.print(f"[bold red]error:[/] {str(e)}")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[bold red]unexpected error:[/] {str(e)}")
+        if verbose:
+            console.print_exception()
         raise typer.Exit(1)
 
 
@@ -87,21 +101,34 @@ def detail(
 ):
     """Get pull request details including description and comments over the past specified number of days"""
     try:
-        repository, _ = setup_github_client(repo, verbose)
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[bold blue]{task.description}"),
+            transient=True,
+            disable=not verbose,
+        ) as progress:
+            task = progress.add_task("Setting up GitHub client...", total=None)
+            github_repo, repository, _ = setup_github_client(repo, verbose)
 
-        pr_data, pr = github.get_pr_detail_data(repository, pr_number, verbose)
+            progress.update(task, description=f"Fetching PR #{pr_number}...")
+            pr_data, pr = github_repo.get_pr_detail_data(pr_number)
 
-        if output_format.lower() == OutputFormat.table:
-            github.display_pr_details_table(pr)
-        else:
-            json_output = json.dumps(pr_data)
-            print(json_output)
+            if output_format.lower() == OutputFormat.table:
+                github.display_pr_details_table(pr)
+            else:
+                json_output = json.dumps(pr_data)
+                print(json_output)
 
-            if write:
-                write_json_to_file(json_output, "pr-pulse-detail", verbose)
+                if write:
+                    write_json_to_file(json_output, "pr-pulse-detail", verbose)
 
-    except Exception as e:
+    except ClientError as e:
         console.print(f"[bold red]error:[/] {str(e)}")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[bold red]unexpected error:[/] {str(e)}")
+        if verbose:
+            console.print_exception()
         raise typer.Exit(1)
 
 
@@ -129,25 +156,40 @@ def details(
 ):
     """Get details of all merged pull requests over the past specified number of days"""
     try:
-        repository, g = setup_github_client(repo, verbose)
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[bold blue]{task.description}"),
+            transient=True,
+            disable=not verbose,
+        ) as progress:
+            task = progress.add_task("Setting up GitHub client...", total=None)
+            github_repo, repository, g = setup_github_client(repo, verbose)
 
-        result = github.get_prs_details_data(repository, g, repo, days, verbose)
+            progress.update(task, description="Fetching PR details...")
+            result = github_repo.get_prs_details_data(repo, days)
 
-        if output_format.lower() == OutputFormat.table:
-            github.display_pr_details_summary_table(result["pr_details"], repo, days)
-        else:
-            # Exclude the pr_details key which contains the actual PR objects
-            output = {
-                "stats": result["stats"],
-                "pull_requests": result["pull_requests"],
-            }
-            json_output = json.dumps(output)
+            if output_format.lower() == OutputFormat.table:
+                github.display_pr_details_summary_table(
+                    result["pr_details"], repo, days
+                )
+            else:
+                # Exclude the pr_details key which contains the actual PR objects
+                output = {
+                    "stats": result["stats"],
+                    "pull_requests": result["pull_requests"],
+                }
+                json_output = json.dumps(output)
 
-            if write:
-                write_json_to_file(json_output, "pr-pulse-summary", verbose)
+                if write:
+                    write_json_to_file(json_output, "pr-pulse-summary", verbose)
 
-            print(json_output)
+                print(json_output)
 
-    except Exception as e:
+    except ClientError as e:
         console.print(f"[bold red]error:[/] {str(e)}")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[bold red]unexpected error:[/] {str(e)}")
+        if verbose:
+            console.print_exception()
         raise typer.Exit(1)

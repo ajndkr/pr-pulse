@@ -1,9 +1,10 @@
 import typer
 from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from pr_pulse.core import clients
 from pr_pulse.core.chains import generate_pr_summary_from_data
-from pr_pulse.core.github import get_prs_details_data
+from pr_pulse.core.clients import ClientError
 from pr_pulse.core.slack import create_report_text
 
 app = typer.Typer(
@@ -17,6 +18,12 @@ console = Console()
 def main(ctx: typer.Context):
     if ctx.invoked_subcommand is None:
         typer.echo(ctx.get_help())
+
+
+class SlackError(Exception):
+    """Exception raised for Slack API errors"""
+
+    pass
 
 
 @app.command()
@@ -36,36 +43,53 @@ def summary(
 ):
     """Generates a Pulse insights summary using Gemini AI"""
     try:
-        repository, g = clients.setup_github_client(repo, verbose)
-        pr_data = get_prs_details_data(repository, g, repo, days, verbose)
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[bold blue]{task.description}"),
+            transient=True,
+            disable=not verbose,
+        ) as progress:
+            task = progress.add_task("Setting up GitHub client...", total=None)
+            github_repo, _, _ = clients.setup_github_client(repo, verbose)
 
-        gemini_client = clients.setup_gemini_client(verbose)
-        report = generate_pr_summary_from_data(
-            pr_data=pr_data,
-            llm=gemini_client,
-            stream=stream,
-            verbose=verbose,
-            write=write,
-        )
+            progress.update(task, description="Fetching PR details...")
+            pr_data = github_repo.get_prs_details_data(repo, days)
 
-        if share:
-            if verbose:
-                console.print("[bold blue]sharing[/] report to Slack...")
-            webhook = clients.setup_slack_webhook_client(verbose)
-            slack_message = create_report_text(report)
+            progress.update(task, description="Setting up Gemini client...")
+            gemini_client = clients.setup_gemini_client(verbose)
 
-            try:
-                response = webhook.send(text=slack_message)
-                if response.status_code == 200:
-                    console.print("[bold green]success:[/] message sent to Slack")
-                else:
-                    console.print(
-                        f"[bold red]error:[/] failed to send message: {response.body}"
-                    )
-            except Exception as e:
-                console.print(f"[bold red]error:[/] Slack API error: {str(e)}")
-                raise e
+            progress.update(task, description="Generating insights summary...")
+            report = generate_pr_summary_from_data(
+                pr_data=pr_data,
+                llm=gemini_client,
+                stream=stream,
+                verbose=verbose,
+                write=write,
+            )
 
-    except Exception as e:
+            if share:
+                progress.update(task, description="Sharing report to Slack...")
+                webhook = clients.setup_slack_webhook_client(verbose)
+                slack_message = create_report_text(report)
+
+                try:
+                    response = webhook.send(text=slack_message)
+                    if response.status_code == 200:
+                        console.print("[bold green]success:[/] message sent to Slack")
+                    else:
+                        raise SlackError(f"Failed to send message: {response.body}")
+                except Exception as e:
+                    console.print(f"[bold red]error:[/] Slack API error: {str(e)}")
+                    raise SlackError(f"Slack API error: {str(e)}")
+
+    except ClientError as e:
         console.print(f"[bold red]error:[/] {str(e)}")
+        raise typer.Exit(1)
+    except SlackError as e:
+        console.print(f"[bold red]error:[/] {str(e)}")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[bold red]unexpected error:[/] {str(e)}")
+        if verbose:
+            console.print_exception()
         raise typer.Exit(1)
