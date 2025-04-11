@@ -14,6 +14,7 @@ dependencies = [
     "pygithub>=2.6.1",
     "rich>=14.0.0",
     "slack-sdk>=3.35.0",
+    "typer-slim>=0.15.2",
 ]
 
 [dependency-groups]
@@ -25,11 +26,6 @@ dev = [
 
 [project.scripts]
 pr-pulse = "pr_pulse.cli:app"
-
-[project.optional-dependencies]
-cli = [
-    "typer-slim>=0.15.2",
-]
 
 [build-system]
 requires = ["hatchling"]
